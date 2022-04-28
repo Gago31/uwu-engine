@@ -24,15 +24,16 @@ add_executable(uwuEngine "main.cpp")
 set_property(TARGET uwuEngine PROPERTY CXX_STANDARD 20)
 
 target_link_libraries(uwuEngine PRIVATE
-    "${REPO_DIR}/libs/glad/glad.lib"
-    "${REPO_DIR}/libs/glfw/glfw3.lib"
-    "${REPO_DIR}/libs/grafica/grafica.lib"
+    "${REPO_DIR}/libs/grafica_cpp/build/source/grafica/Release/grafica.lib"
+    "${REPO_DIR}/libs/grafica_cpp/build/third_party/glad/Release/glad.lib"
+    "${REPO_DIR}/libs/grafica_cpp/build/third_party/glfw-3.3.2/src/Release/glfw3.lib"
     uwu_lib
 )
 target_include_directories(uwuEngine PRIVATE
-    "${REPO_DIR}/libs/glad/include"
-    "${REPO_DIR}/libs/glfw/include"
-    "${REPO_DIR}/libs/grafica/include"
+    "${REPO_DIR}/libs/grafica_cpp/source/"
+    "${REPO_DIR}/libs/grafica_cpp/third_party/glad/include/"
+    "${REPO_DIR}/libs/grafica_cpp/third_party/glfw-3.3.2/include/"
+    "${REPO_DIR}/libs/grafica_cpp/third_party/eigen-3.3.9/"
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
