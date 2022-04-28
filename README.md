@@ -11,10 +11,21 @@ Este motor estará orientado a juegos del género RPG/Dungeon crawler, donde se 
 Para compilar es necesario utilizar CMake y Visual Studio. Los pasos a seguir son:
 
 * Clonar el repositorio
-* Crear la carpeta `engine/build`
+* Hacer `cd` dentro del repositorio
+* Ejecutar `git submodule init`
+* Ejecutar `git submodule update`
+* Hacer `cd libs/grafica_cpp`
+* Crear carpeta `build`
 * Hacer `cd build`
 * Ejecutar `cmake ../source`
-* Abrir `UWUengine.sln` en Visual Studio
+* Abrir `build/Project.sln` en Visual Studio y compilar `grafica` en modo Release
+Con esto se compilaron las dependencias del motor.
+
+Para compilar el motor:
+* Crear la carpeta `engine/build`
+* Hacer `cd engine/build`
+* Ejecutar `cmake ../source`
+* Abrir `engine/build/UWUengine.sln` en Visual Studio
 * Compilar `uwuEngine` en modo Release
 
 ## Para ejecutar:
