@@ -53,4 +53,4 @@ target_include_directories(uwuEngine PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-
+configure_file(CMakeConfigFiles/root_directory.h.in "${CMAKE_SOURCE_DIR}/root_directory.h")

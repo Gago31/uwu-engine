@@ -15,10 +15,12 @@
 #include <grafica/gpu_shape.h>
 #include <grafica/transformations.h>
 #include <grafica/scene_graph.h>
+#include "root_directory.h"
 #include "Enemy.h"
 
 namespace gr = Grafica;
 namespace tr = Grafica::Transformations;
+namespace uwu = UWU;
 
 enum class ProjectionType { Orthographic, Frustum, Perspective };
 
@@ -76,6 +78,8 @@ int main() {
     // --------------------
     constexpr unsigned int SCR_WIDTH = 1280;
     constexpr unsigned int SCR_HEIGHT = 720;
+    constexpr float SCREEN_RATIO = float(SCR_WIDTH) / float(SCR_HEIGHT);
+
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "uwu enyin", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -94,18 +98,22 @@ int main() {
     }
 
     gr::Matrix4f projection;
-    projection = tr::perspective(60, float(SCR_WIDTH) / float(SCR_HEIGHT), 0.1, 100);
+    projection = tr::perspective(60, SCREEN_RATIO, 0.1, 100);
 
     gr::ModelViewProjectionShaderProgram pipeline;
-    glUseProgram(pipeline.shaderProgram);
+    gr::TextureTransformShaderProgram guiPipeline;
     gr::GPUShape gpuAxis = gr::toGPUShape(pipeline, gr::createAxis(7));
     gr::GPUShape plane = gr::toGPUShape(pipeline, gr::createColorQuad(0.1f, 0.5f, 0.1f));
     gr::GPUShape gpuGreenCube = gr::toGPUShape(pipeline, gr::createColorCube(0, 1, 0));
     gr::GPUShape gpuRedCube = gr::toGPUShape(pipeline, gr::createColorCube(1, 0, 0));
-
+    gr::GPUShape gpuwu = gr::toGPUShape(guiPipeline, gr::createTextureQuad());
+    gpuwu.texture = gr::textureSimpleSetup(
+        uwu::getPath("assets/imgs/uwu.png"), GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST);
 
     glClearColor(0.0f, 0.6f, 1.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float t0 = glfwGetTime(), t1, dt;
     float cameraTheta = std::numbers::pi / 2;
@@ -167,6 +175,8 @@ int main() {
         gr::Vector3f const at(0, 0, 1);
 
         gr::Matrix4f view = tr::lookAt(viewPos, eye, at);
+
+        glUseProgram(pipeline.shaderProgram);
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "view"), 1, GL_FALSE, view.data());
 
 
@@ -180,6 +190,7 @@ int main() {
             ((gr::Matrix4f) (tr::translate(0.0f, 0.0f, 0.0f) * tr::uniformScale(20))).data());
         pipeline.drawCall(plane);
 
+        // walls
         for (int i = 0; i < g.width(); i++) {
             for (int j = 0; j < g.height(); j++) {
                 if (g.coord(i, j) == 1) {
@@ -189,29 +200,20 @@ int main() {
             }
         }
 
-        // Enemy movement logic
+        // enemy
         enemy.update(dt, MOVEMENT_PERIOD);
-        /*enemyMovementTime = std::clamp(enemyMovementTime + dt, 0.0f, MOVEMENT_PERIOD);
-        float enemyTranslationRatio = enemyMovementTime / MOVEMENT_PERIOD;
-        float enemyX = enemyPos[0] + (enemyRoute[enemyNextPos][0] - enemyPos[0]) * enemyTranslationRatio;
-        float enemyY = enemyPos[1] + (enemyRoute[enemyNextPos][1] - enemyPos[1]) * enemyTranslationRatio;
-        if (enemyMovementTime == MOVEMENT_PERIOD) {
-            enemyPos = enemyRoute[enemyNextPos];
-            enemyNextPos = (enemyNextPos + 1) % enemyRoute.size();
-            enemyMovementTime = 0.0f;
-        }*/
-
-        //glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_FALSE, 
-        //    ((gr::Matrix4f)(tr::translate(enemy.getX(), enemy.getY(), 0.25f) * tr::uniformScale(0.5f))).data());
-        //pipeline.drawCall(gpuRedCube);
+        
         //enemy.render(pipeline);
         gr::drawSceneGraphNode(enemy.getNode(), pipeline, "model");
 
-        // glClear(GL_DEPTH_BUFFER_BIT);
-
         // GUI
-        // gr::GPUShape gpuRainbowQuad = gr::toGPUShape(pipeline, gr::createRainbowQuad());
-        // pipeline.drawCall(gpuRainbowQuad);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glUseProgram(guiPipeline.shaderProgram);
+
+        gr::Matrix4f guiTransform = tr::translate(-0.85f, -0.8f, 0.0f) * tr::scale(0.2f, 0.2f * SCREEN_RATIO, 1);
+
+        glUniformMatrix4fv(glGetUniformLocation(guiPipeline.shaderProgram, "transform"), 1, GL_FALSE, guiTransform.data());
+        guiPipeline.drawCall(gpuwu);
 
         glfwSwapBuffers(window);
 
@@ -219,8 +221,10 @@ int main() {
     }
 
     gpuAxis.clear();
+    plane.clear();
     gpuGreenCube.clear();
     gpuRedCube.clear();
+    gpuwu.clear();
 
     glfwTerminate();
     return 0;
