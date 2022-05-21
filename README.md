@@ -17,8 +17,8 @@ Para compilar es necesario utilizar CMake y Visual Studio. Los pasos a seguir so
 * Hacer `cd libs/grafica_cpp`
 * Crear carpeta `build`
 * Hacer `cd build`
-* Ejecutar `cmake ../source`
-* Abrir `build/Project.sln` en Visual Studio y compilar `grafica` en modo Release
+* Ejecutar `cmake ../`
+* Abrir `build/grafica.sln` en Visual Studio y compilar `grafica` en modo Release
 Con esto se compilaron las dependencias del motor.
 
 Para compilar el motor:
@@ -31,3 +31,7 @@ Para compilar el motor:
 ## Para ejecutar:
 * Dirigirse a `build/Release`
 * Ejecutar `uwuEngine.exe`
+
+## Controles
+* Flechas Izquierda/Derecha: Girar a la izquierda/derecha
+* Flechas Arriba/Abajo: Avanzar/Retroceder
