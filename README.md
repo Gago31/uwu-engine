@@ -19,6 +19,7 @@ Para compilar es necesario utilizar CMake y Visual Studio. Los pasos a seguir so
 * Hacer `cd build`
 * Ejecutar `cmake ../`
 * Abrir `build/grafica.sln` en Visual Studio y compilar `grafica` en modo Release
+
 Con esto se compilaron las dependencias del motor.
 
 Para compilar el motor:
