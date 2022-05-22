@@ -17,6 +17,9 @@
 #include <grafica/scene_graph.h>
 #include "root_directory.h"
 #include "Enemy.h"
+#include "Model.h"
+#include "Shader.h"
+
 
 namespace gr = Grafica;
 namespace tr = Grafica::Transformations;
@@ -90,12 +93,20 @@ int main() {
     glfwSetKeyCallback(window, key_callback);
     //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+
     // glad: load all OpenGL function pointers
     // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    //stbi_set_flip_vertically_on_load(true);
+
+    glClearColor(0.0f, 0.6f, 1.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     gr::Matrix4f projection;
     projection = tr::perspective(60, SCREEN_RATIO, 0.1, 100);
@@ -109,11 +120,11 @@ int main() {
     gr::GPUShape gpuwu = gr::toGPUShape(guiPipeline, gr::createTextureQuad());
     gpuwu.texture = gr::textureSimpleSetup(
         uwu::getPath("assets/imgs/uwu.png"), GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST);
+    std::cout << "a" << std::endl;
+    Shader testShader(uwu::getPath("assets/shaders/test_shader.vs"), uwu::getPath("assets/shaders/test_shader.fs"));
+    //Model DCP(uwu::getPath("assets/models/backpack/backpack.obj"));
+    Model DCP(uwu::getPath("assets/models/dcp.obj"));
 
-    glClearColor(0.0f, 0.6f, 1.0f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float t0 = glfwGetTime(), t1, dt;
     float cameraTheta = std::numbers::pi / 2;
@@ -204,7 +215,21 @@ int main() {
         enemy.update(dt, MOVEMENT_PERIOD);
         
         //enemy.render(pipeline);
+
+
         gr::drawSceneGraphNode(enemy.getNode(), pipeline, "model");
+
+
+        // dcp
+
+        gr::Matrix4f dcpTransform = tr::translate(0.0f, 0.0f, 0.0f) * tr::rotationX(3.14159f/2)  * tr::uniformScale(0.2f);
+
+        testShader.use();
+        testShader.setMatrix4f("projection", projection.data());
+        testShader.setMatrix4f("view", view.data());
+        testShader.setMatrix4f("model", dcpTransform.data());
+        DCP.Draw(testShader);
+        
 
         // GUI
         glClear(GL_DEPTH_BUFFER_BIT);
