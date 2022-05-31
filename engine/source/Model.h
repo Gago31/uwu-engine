@@ -29,16 +29,20 @@ class Model {
 		std::string directory;
 		bool gammaCorrection;
 
+		Model() = default;
+
 		Model(const std::filesystem::path &path, bool gamma=false) : gammaCorrection(gamma) {
 			loadModel(path.string());
 		}
-		void Draw(Shader &shader);
+		void Draw(ShaderPtr shader);
 	private:
 		void loadModel(std::string path);
 		void processNode(aiNode* node, const aiScene* scene);
 		Mesh processMesh(aiMesh *mesh, const aiScene *scene);
 		std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
 };
+
+using ModelPtr = std::shared_ptr<Model>;
 
 #endif // !MODEL_H
 

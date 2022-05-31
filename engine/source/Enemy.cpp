@@ -1,8 +1,3 @@
-#include <vector>
-#include <grafica/transformations.h>
-#include <grafica/gpu_shape.h>
-#include <grafica/easy_shaders.h>
-#include <grafica/scene_graph.h>
 #include <glad/glad.h>
 #include "Enemy.h"
 
@@ -10,56 +5,72 @@ namespace gr = Grafica;
 namespace tr = Grafica::Transformations;
 
 
-Enemy::Enemy(gr::SceneGraphNodePtr _node) {
-    //shape = _shape;
-    //pipeline = _pipeline;
-    node = _node;
-	enemyPos = gr::Vector3f(0.0f, 0.0f, 0.0f);
+Enemy::Enemy(ModelPtr _model, ShaderPtr _shader, float _square_size) {
+    model = _model;
+    shader = _shader;
+	position = glm::vec3(0.0f, 0.0f, 0.0f);
+    square_size = _square_size;
 }
 
-Enemy::Enemy(gr::SceneGraphNodePtr _node, gr::Vector3f pos) {
-    //shape = _shape;
-    //pipeline = _pipeline;
-    node = _node;
-    enemyPos = pos;
+Enemy::Enemy(ModelPtr _model, ShaderPtr _shader, glm::vec3 pos, float _square_size) {
+    model = _model;
+    shader = _shader;
+    position = pos;
+    x = pos.x;
+    y = pos.y;
+    square_size = _square_size;
 }
 
-Enemy::Enemy(gr::SceneGraphNodePtr _node, gr::Vector3f pos, std::vector<gr::Vector3f>& route) {
-    //shape = _shape;
-    //pipeline = _pipeline;
-    node = _node;
-    enemyPos = pos;
-	enemyRoute = route;
+Enemy::Enemy(ModelPtr _model, ShaderPtr _shader, glm::vec3 pos, std::vector<direction_t>& _path, float _square_size) {
+    model = _model;
+    shader = _shader;
+    position = pos;
+    //path = route;
+    x = pos.x;
+    y = pos.y;
+    path = _path;
+    square_size = _square_size;
 }
 
 void Enemy::update(float delta, const float movement_period) {
-	if (enemyRoute.empty()) return;
+	if (path.empty()) return;
 
-    enemyMovementTime = std::clamp(enemyMovementTime + delta, 0.0f, movement_period);
-    float enemyTranslationRatio = enemyMovementTime / movement_period;
-    x = enemyPos[0] + (enemyRoute[enemyNextPos][0] - enemyPos[0]) * enemyTranslationRatio;
-    y = enemyPos[1] + (enemyRoute[enemyNextPos][1] - enemyPos[1]) * enemyTranslationRatio;
-    if (enemyMovementTime == movement_period) {
-        enemyPos = enemyRoute[enemyNextPos];
-        enemyNextPos = (enemyNextPos + 1) % enemyRoute.size();
-        enemyMovementTime = 0.0f;
+    movementTime = std::clamp(movementTime + delta, 0.0f, movement_period);
+    float translationRatio = movementTime / movement_period;
+    direction = (direction_t) (path[nextPos] & 3); // First two bits
+    bool wait = path[nextPos] & WAIT;
+    bool double_step = path[nextPos] & DOUBLE;
+    float movementY = (direction & VERTICAL) ? ((direction & NEGATIVE) ? -1 : 1) : 0;
+    float movementX = (direction & VERTICAL) ? 0 : ((direction & NEGATIVE) ? -1 : 1);
+    movementY = wait ? 0 : movementY;
+    movementX = wait ? 0 : movementX;
+    x = position.x + movementX * square_size * translationRatio * (double_step ? 2.0f : 1.0f);
+    y = position.y + movementY * square_size * translationRatio * (double_step ? 2.0f : 1.0f);
+    if (movementTime == movement_period) {
+        position.x = position.x + movementX * square_size * (double_step ? 2.0f : 1.0f);
+        position.y = position.y + movementY * square_size * (double_step ? 2.0f : 1.0f);
+        nextPos = (nextPos + 1) % path.size();
+        movementTime = 0.0f;
     }
 
-    node->transform = tr::translate(x, y, 0.25);
-    //render(x, y, _pipeline);
+    //render(x, y);
 }
 
-template <typename PipelineT>
-void Enemy::render(const PipelineT& pipeline) {
-    /*glUseProgram(pipeline.shaderProgram);
-    gr::Matrix4f new_pos = tr::translate(x, y, 0.25f) * tr::uniformScale(0.5f);
-    glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_FALSE, new_pos.data());
-    pipeline.drawCall(shape);*/
-    gr::drawSceneGraphNode(node, pipeline, "model");
+void Enemy::render() {
+    //this->transform.position = glm::vec3(x, y, 0.0f);
+    glm::mat4 _transform = glm::mat4(1.0f);
+    _transform = glm::translate(_transform, { x, y, 0.0f });
+    _transform = glm::rotate(_transform, glm::pi<float>() * 0.5f * ((direction & 3) + 1), glm::vec3(0.0f, 0.0f, 1.0f));
+    _transform = _transform * this->transform.rotation;
+    _transform = glm::scale(_transform, this->transform.size);
+    //_transform = glm::translate(_transform, this->transform.position);
+    //gr::Matrix4f transform = tr::translate(x, y, 0.0f) * tr::rotationZ(3.14159f * 0.5f * ((direction & 3) + 1)) * tr::rotationX(3.14159f / 2) * tr::uniformScale(0.2f);
+    shader->setMatrix4f("model", _transform);
+    model->Draw(shader);
 }
 
-const gr::Vector3f Enemy::getPos() {
-    return enemyPos;
+const glm::vec3 Enemy::getPos() {
+    return position;
 }
 
 const float Enemy::getX() {
@@ -68,8 +79,4 @@ const float Enemy::getX() {
 
 const float Enemy::getY() {
     return y;
-}
-
-const gr::SceneGraphNodePtr Enemy::getNode() {
-    return node;
 }

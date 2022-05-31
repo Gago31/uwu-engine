@@ -15,7 +15,7 @@ add_library(uwu_lib STATIC
     "Grid.h" 
 	"Grid.cpp"
     "Enemy.h"
-    "Enemy.cpp" "Component.h" "Component.cpp" "Entity.h" "Entity.cpp" "Mesh.cpp" "Mesh.h" "Shader.h" "Shader.cpp" "Model.cpp" "Model.h")
+    "Enemy.cpp" "Component.h" "Component.cpp" "Entity.h" "Entity.cpp" "Mesh.cpp" "Mesh.h" "Shader.h" "Shader.cpp" "Model.cpp" "Model.h" "Transform.h" "Sprite.h" "Sprite.cpp" "Map.h" "Map.cpp" "SpriteRenderer.h" "Texture.h" "Texture.cpp" "SpriteRenderer.cpp" "Transform.cpp" "ResourceManager.h" "ResourceManager.cpp" "Controller.h" "Controller.cpp" "Camera.h" "Camera.cpp" "Player.h" "Player.cpp" "Renderer.h" "Renderer.cpp")
 
 include(GenerateExportHeader)
 generate_export_header(uwu_lib)
