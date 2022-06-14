@@ -1,5 +1,5 @@
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#ifndef INPUT_CONTROLLER_H
+#define INPUT_CONTROLLER_H
 
 #include <vector>
 #include <map>
@@ -49,6 +49,7 @@ class InputController {
 		static void addListener(InputListenerPtr *listener);
 		static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		static void joystick_callback(int jid, int event);
+		static void pollJoysticks();
 		static const std::map<std::string, int> getKeyboardBindings();
 		static const std::map<std::string, int> getJoystickBindings();
 		static const std::map<std::string, std::pair<int, int>> getAxisBindings();

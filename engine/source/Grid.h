@@ -2,6 +2,8 @@
 #define GRID_H
 
 #include <vector>
+#include <memory>
+#include <glm/glm.hpp>
 
 
 class Grid {
@@ -22,6 +24,11 @@ class Grid {
 
 		int coord(int x, int y) const;
 
+		int coord(glm::vec2 pos) const;
+
 		void set_coord(int x, int y, int value);
 };
+
+using GridPtr = std::shared_ptr<Grid>;
+
 #endif // !GRID_H

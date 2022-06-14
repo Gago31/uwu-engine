@@ -7,6 +7,7 @@
 #include "Shader.h"
 #include "Model.h"
 #include "Transform.h"
+#include "MeshNode.h"
 
 namespace gr = Grafica;
 
@@ -25,25 +26,28 @@ enum direction_t {
     VERTICAL = 1
 };
 
-class Enemy {
+class Enemy : public MeshNode {
 	private:
         std::vector<direction_t> path;
         glm::vec3 position;
         int nextPos = 0;
         float movementTime = 0.0f;
+        bool action_ready = true;
         direction_t direction = RIGHT;
         float x = 0.0f;
         float y = 0.0f;
-        float square_size = 1.0f;
-        ModelPtr model;
+        //float square_size = 1.0f;
+        //ModelPtr model;
 	public:
         ShaderPtr shader;
-        Transform transform;
-        Enemy(ModelPtr _model, ShaderPtr _shader, float _square_size = 1.0f);
+        Enemy() = default;
+        //Transform transform;
+        /*Enemy(ModelPtr _model, ShaderPtr _shader, float _square_size = 1.0f);
         Enemy(ModelPtr _model, ShaderPtr _shader, glm::vec3 pos, float _square_size = 1.0f);
-        Enemy(ModelPtr _model, ShaderPtr _shader, glm::vec3 pos, std::vector<direction_t>& _path, float _square_size = 1.0f);
-        void update(float delta, const float movement_period);
-        void render();
+        Enemy(ModelPtr _model, ShaderPtr _shader, glm::vec3 pos, std::vector<direction_t>& _path, float _square_size = 1.0f);*/
+        Enemy(glm::vec3 pos, std::vector<direction_t>& _path);
+        void update(float dt) override;
+        void render(glm::mat4 _transform) override;
         const glm::vec3 getPos();
         const float getX();
         const float getY();

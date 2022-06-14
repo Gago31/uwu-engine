@@ -7,13 +7,14 @@
 
 class Camera {
 	public:
-		Camera(glm::vec3 pos, float aspect_ratio = 1.0f);
+		Camera(glm::vec3 pos, float theta_ = 0.0f, float aspect_ratio = 1.0f);
         void update();
         float theta = 0.0f;
         float phi = 0.0f;
         void setPos(glm::vec3 new_pos);
         void setPos(float x, float y, float z);
         void setAspectRatio(float new_ratio);
+        void makeCurrent();
         glm::mat4 getView();
         glm::mat4 getProjection();
 	private:

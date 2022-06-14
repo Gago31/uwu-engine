@@ -34,6 +34,13 @@ int Grid::coord(int x, int y) const {
 	return grid[y * w + x];
 }
 
+int Grid::coord(glm::vec2 pos) const {
+	if (pos.x < 0 || w < pos.x || pos.y < 0 || h < pos.y) {
+		return -1;
+	}
+	return grid[pos.y * w + pos.x];
+}
+
 void Grid::set_coord(int x, int y, int value) {
 	if (x < 0 || w < x || y < 0 || h < y) {
 		return;
