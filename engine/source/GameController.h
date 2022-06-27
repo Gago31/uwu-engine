@@ -2,6 +2,8 @@
 #define GAME_CONTROLLER_H
 
 #include "Grid.h"
+#include "SceneGraph.h"
+#include "Camera.h"
 
 
 class GameController {
@@ -17,6 +19,8 @@ class GameController {
         inline static float TURN_PROGRESS = 0.0f;
         inline static float fillPolygon = true;
         inline static GridPtr currentGrid;
+        inline static Scene *currentScene;
+        inline static Camera *currentCamera;
         static void initialize() {
             SCR_WIDTH = 1280; // 1920
             SCR_HEIGHT = 720; // 1080

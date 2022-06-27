@@ -20,6 +20,7 @@
 #include "SceneGraph.h"
 #include "Node3D.h"
 #include "MeshNode.h"
+#include "Renderer.h"
 
 
 namespace uwu = UWU;
@@ -30,6 +31,7 @@ GLFWwindow *window;
 void loadResources() {
     ResourceManager::loadShader(uwu::getPath("assets/shaders/sprite_shader.vs").string().c_str(), uwu::getPath("assets/shaders/sprite_shader.fs").string().c_str(), nullptr, "spriteShader");
     ResourceManager::loadShader(uwu::getPath("assets/shaders/model_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_shader.fs").string().c_str(), nullptr, "modelShader");
+    //ResourceManager::loadShader(uwu::getPath("assets/shaders/model_lighting_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
     //ResourceManager::loadShader(uwu::getPath("assets/shaders/mesh_shader.vs").string().c_str(), uwu::getPath("assets/shaders/mesh_shader.fs").string().c_str(), nullptr, "meshShader");
     ResourceManager::loadTexture(uwu::getPath("assets/imgs/uwu.png").string().c_str(), true, "uwu");
     ResourceManager::loadModel(uwu::getPath("assets/models/dcp.obj").string().c_str(), "DCP");
@@ -62,7 +64,7 @@ int setUpOpenGL() {
     glfwMakeContextCurrent(window);
     //glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-    glfwSetKeyCallback(window, InputController::key_callback);
+    //glfwSetKeyCallback(window, InputController::key_callback);
     //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
@@ -78,6 +80,7 @@ int setUpOpenGL() {
     glClearColor(0.0f, 0.6f, 1.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+    glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     return 0;
@@ -90,13 +93,17 @@ void setInputBindings() {
         { "left", GLFW_KEY_LEFT },
         { "right", GLFW_KEY_RIGHT },
         { "up", GLFW_KEY_UP },
-        { "down", GLFW_KEY_DOWN }
+        { "down", GLFW_KEY_DOWN },
+        { "a", GLFW_KEY_Z },
+        { "b", GLFW_KEY_X }
     });
     InputController::setJoystickBindings({
         { "left", GLFW_GAMEPAD_BUTTON_DPAD_LEFT },
         { "right", GLFW_GAMEPAD_BUTTON_DPAD_RIGHT },
         { "up", GLFW_GAMEPAD_BUTTON_DPAD_UP },
-        { "down", GLFW_GAMEPAD_BUTTON_DPAD_DOWN }
+        { "down", GLFW_GAMEPAD_BUTTON_DPAD_DOWN },
+        { "a", GLFW_GAMEPAD_BUTTON_A },
+        { "b", GLFW_GAMEPAD_BUTTON_B }
     });
     /*InputController::setAxisBindings({
         { "left", { GLFW_GAMEPAD_AXIS_LEFT_X, -1 } },
@@ -123,12 +130,7 @@ int main() {
         1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
     });
 
-    for (int j = 0; j < h; j++) {
-        for (int i = 0; i < w; i++) {
-            std::cout << g.coord(i, j) << ' ';
-        }
-        std::cout << std::endl;
-    }
+    g.print();
 
     if (setUpOpenGL()) return -1;
 
@@ -146,16 +148,22 @@ int main() {
     //std::vector<direction_t> enemyPath = { LEFT, UP, UP, RIGHT, RIGHT, DOWN, DOWN, LEFT };
     std::vector<direction_t> enemyPath = { LEFT, (direction_t)(WAIT | UP), UP, UP, (direction_t)(WAIT | RIGHT), RIGHT, RIGHT, (direction_t)(WAIT | DOWN), DOWN, DOWN, (direction_t)(WAIT | LEFT), LEFT };
     //std::vector<direction_t> enemyPath = { (direction_t) (WAIT | UP), (direction_t) (DOUBLE | UP), (direction_t)(WAIT | RIGHT), (direction_t)(DOUBLE | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(DOUBLE | DOWN), (direction_t)(WAIT | LEFT), (direction_t)(DOUBLE | LEFT) };
-    //Enemy enemy(std::make_shared<Model>(ResourceManager::getModel("DCP")), std::make_shared<Shader>(ResourceManager::getShader("modelShader")), { -3, 2, 0 }, enemyPath);
-    //Enemy* enemy = new Enemy(std::make_shared<Model>(ResourceManager::getModel("DCP")), std::make_shared<Shader>(ResourceManager::getShader("modelShader")), { 2, 7, 0 }, enemyPath);
     Enemy *enemy = new Enemy({2, 7, 0}, enemyPath);
-    MeshNode *dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), std::make_shared<Shader>(ResourceManager::getShader("modelShader")));
+    MeshNode *dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), "modelShader");
     dcpNode->transform.scale(0.2f);
     dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
     enemy->addChild(dcpNode);
 
+    /*std::vector<direction_t> enemyPath2 = { (direction_t)(WAIT | UP), (direction_t)(WAIT | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(WAIT | LEFT) };
+    Enemy* enemy2 = new Enemy({ 5, 5, 0 }, enemyPath2);
+    MeshNode* dcpNode2 = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), std::make_shared<Shader>(ResourceManager::getShader("modelShader")));
+    dcpNode2->transform.scale(0.2f);
+    dcpNode2->transform.rotateX(glm::pi<float>() * 0.5);
+    enemy2->addChild(dcpNode2);*/
+
     Player player(0.0f, 4.0f, 0.25f, 90);
     player.camera->setAspectRatio(GameController::SCREEN_RATIO);
+    player.camera->makeCurrent();
 
     GameController::currentGrid = std::make_shared<Grid>(g);
 
@@ -165,17 +173,21 @@ int main() {
     // ----------- Build SceneTree -------------------------
 
     Scene scene;
+    GameController::currentScene = &scene;
     Node *root = &scene.root;
+
+    root->addChild(enemy);
+    //GameController::currentScene->root.addChild(enemy2);
 
     for (int i = 0; i < g.width(); i++) {
         for (int j = 0; j < g.height(); j++) {
             if (g.coord(i, j) == 1) {
-                MeshNode *wall = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenCube")), std::make_shared<Shader>(ResourceManager::getShader("modelShader")));
+                MeshNode *wall = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenCube")), "modelShader");
                 wall->transform.translate({ i, -j + g.height(), 0.5f });
                 wall->transform.scale(0.5f);
                 root->addChild(wall);
             } else {
-                MeshNode *floor = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenPlane")), std::make_shared<Shader>(ResourceManager::getShader("modelShader")));
+                MeshNode *floor = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenPlane")), "modelShader");
                 floor->transform.translate({ i, -j + g.height(), 0.0f });
                 floor->transform.scale(0.5f);
                 floor->transform.rotateX(glm::radians<float>(90));
@@ -184,11 +196,18 @@ int main() {
         }
     }
 
-    root->addChild(enemy);
-
     while (!glfwWindowShouldClose(window)) {
+        t1 = glfwGetTime();
+        dt = t1 - t0;
+        t0 = t1;
+
+        std::stringstream ss;
+        ss << "uwu enyin [" << (int) (1.0f / dt) << "fps" << (int) (1000 * dt) << " ms]";
+        glfwSetWindowTitle(window, ss.str().c_str());
+
         glfwPollEvents();
         InputController::pollJoysticks();
+        InputController::pollKeys(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (GameController::fillPolygon)
@@ -196,9 +215,6 @@ int main() {
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        t1 = glfwGetTime();
-        dt = t1 - t0;
-        t0 = t1;
 
         // ----------------- update -------------------------
 
@@ -213,11 +229,15 @@ int main() {
         glm::mat4 player_view = player.camera->getView();
         glm::mat4 player_projection = player.camera->getProjection();
 
-        ResourceManager::getShader("modelShader").use();
-        ResourceManager::getShader("modelShader").setMatrix4f("projection", player_projection);
-        ResourceManager::getShader("modelShader").setMatrix4f("view", player_view);
+        Renderer::projection = player_projection;
+        Renderer::view = player_view;
+        /*ResourceManager::getShader("modelShader").setVector3f("lightColor", { 1.0f, 1.0f, 1.0f });
+        ResourceManager::getShader("modelShader").setVector3f("lightPos", { 5.0f, 5.0f, 5.0f });
+        ResourceManager::getShader("modelShader").setVector3f("viewPos", player.camera->getPos());*/
         
         scene.render();
+
+        Renderer::render();
 
         // GUI
         glClear(GL_DEPTH_BUFFER_BIT);

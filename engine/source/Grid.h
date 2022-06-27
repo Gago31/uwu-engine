@@ -27,6 +27,8 @@ class Grid {
 		int coord(glm::vec2 pos) const;
 
 		void set_coord(int x, int y, int value);
+
+		void print();
 };
 
 using GridPtr = std::shared_ptr<Grid>;

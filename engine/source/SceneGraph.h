@@ -15,5 +15,6 @@ class Scene {
 		void render() { root._render(); }
 };
 
+using ScenePtr = std::shared_ptr<Scene>;
 
 #endif // !SCENE_GRAPH_H

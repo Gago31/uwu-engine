@@ -50,6 +50,7 @@ class InputController {
 		static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		static void joystick_callback(int jid, int event);
 		static void pollJoysticks();
+		static void pollKeys(GLFWwindow* window);
 		static const std::map<std::string, int> getKeyboardBindings();
 		static const std::map<std::string, int> getJoystickBindings();
 		static const std::map<std::string, std::pair<int, int>> getAxisBindings();

@@ -1,10 +1,13 @@
 #include "Camera.h"
+#include "GameController.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 Camera::Camera(glm::vec3 pos, float theta_, float aspect_ratio) {
     viewPos = pos;
-    theta = theta_;
+    theta = theta_; 
     ratio = aspect_ratio;
+    near = 0.1f;
+    far = 20.0f;
 }
 
 void Camera::setPos(glm::vec3 new_pos) {
@@ -30,7 +33,19 @@ void Camera::update() {
 }
 
 void Camera::makeCurrent() {
+    GameController::currentCamera = this;
+}
 
+const glm::vec3 Camera::getPos() const {
+    return viewPos;
+}
+
+glm::vec2 Camera::getDirection() {
+    return { glm::sign(approxTrig(glm::cos(theta))), glm::sign(approxTrig(glm::sin(theta))) };
+}
+
+float Camera::approxTrig(float value) {
+    return glm::abs(value) > 0.01f ? value : 0.0f;
 }
 
 glm::mat4 Camera::getView() {
@@ -38,5 +53,5 @@ glm::mat4 Camera::getView() {
 }
 
 glm::mat4 Camera::getProjection() {
-    return glm::perspective(glm::radians<float>(60.0f), ratio, 0.1f, 20.0f);
+    return glm::perspective(glm::radians<float>(60.0f), ratio, near, far);
 }

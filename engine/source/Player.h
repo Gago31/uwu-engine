@@ -15,6 +15,7 @@ class Player {
 		float theta = 0.0f;
 		float h_axis = 0.0f;
 		float v_axis = 0.0f;
+		bool a = true;
 		Player(glm::vec3 pos, float theta_d = 0.0f);
 		Player(float x, float y, float z, float theta_d = 0.0f);
 		void setInputListener(InputListenerPtr listener);

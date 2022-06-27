@@ -1,11 +1,16 @@
 #include "Player.h"
 #include "GameController.h"
 #include <iostream>
+#include "Enemy.h"
+#include <memory>
+#include "ResourceManager.h"
+#include <iostream>
+
 
 Player::Player(glm::vec3 pos, float theta_d) {
     position = pos;
     theta = glm::radians<float>(theta_d);
-	std::vector<std::string> actions = { "left", "right", "up", "down"};
+	std::vector<std::string> actions = { "left", "right", "up", "down", "a", "b" };
 	camera = std::make_shared<Camera>(Camera(pos, theta));
     Input = std::make_shared<InputListener>(InputListener(actions, true));
     InputController::addListener(&Input);
@@ -14,13 +19,17 @@ Player::Player(glm::vec3 pos, float theta_d) {
 Player::Player(float x, float y, float z, float theta_d) {
     position = { x, y, z };
     theta = glm::radians<float>(theta_d);
-    std::vector<std::string> actions = { "left", "right", "up", "down" };
+    std::vector<std::string> actions = { "left", "right", "up", "down", "a", "b" };
     camera = std::make_shared<Camera>(Camera({ x, y, z }, theta));
     Input = std::make_shared<InputListener>(InputListener(actions, true));
     InputController::addListener(&Input);
 }
 
 void Player::update(float dt) {
+    if (Input->actionPressed("b")) {
+        glm::vec2 cam_dir = camera->getDirection();
+        std::cout << cam_dir.x << ", " << cam_dir.y << std::endl;
+    }
     if (accept_input) {
         h_axis = Input->actionStrength("right") - Input->actionStrength("left");
         v_axis = Input->actionStrength("up") - Input->actionStrength("down");
@@ -39,6 +48,23 @@ void Player::update(float dt) {
             GameController::run_turn = (bool) v_axis;
             //std::cout << "turn start" << std::endl;
         }
+        if (Input->actionPressed("a")) {
+            if (a) {
+                std::vector<direction_t> enemyPath = { (direction_t)(WAIT | UP), (direction_t)(WAIT | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(WAIT | LEFT) };
+                Enemy* enemy = new Enemy({ 5, 5, 0 }, enemyPath);
+                MeshNode* dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), "modelShader");
+                dcpNode->transform.scale(0.2f);
+                dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
+                enemy->addChild(dcpNode);
+                GameController::currentScene->root.addChild(enemy);
+                std::cout << "DCP added" << std::endl;
+                a = false;
+            } else {
+                GameController::currentScene->root.children.back()->remove();
+                std::cout << "DCP fucking killed" << std::endl;
+                a = true;
+            }
+        }
     } else {
         timer += dt;
         float time_ratio = glm::clamp(timer / GameController::TURN_PERIOD, 0.0f, 1.0f);
@@ -51,12 +77,13 @@ void Player::update(float dt) {
         /*position.x += walk_speed * v_axis * std::sin(camera->theta) * dt;
         position.y += walk_speed * v_axis * std::cos(camera->theta) * dt;*/
         if (timer >= GameController::TURN_PERIOD) {
-            accept_input = true;
+            camera->theta = theta + h_axis * glm::radians<float>(90);
             position.x += v_axis * glm::round(glm::sin(camera->theta));
             position.y += v_axis * glm::round(glm::cos(camera->theta));
             theta = camera->theta;
             h_axis = v_axis = 0.0f;
             timer = 0.0f;
+            accept_input = true;
             //GameController::run_turn = false;
         }
         camera->setPos(camPos);

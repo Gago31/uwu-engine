@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 #include "Grid.h"
 
 Grid::Grid() {
@@ -46,4 +47,13 @@ void Grid::set_coord(int x, int y, int value) {
 		return;
 	}
 	grid[y * w + x] = value;
+}
+
+void Grid::print() {
+	for (int j = 0; j < h; j++) {
+		for (int i = 0; i < w; i++) {
+			std::cout << coord(i, j) << ' ';
+		}
+		std::cout << std::endl;
+	}
 }

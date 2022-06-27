@@ -26,15 +26,15 @@ bool InputListener::action(std::string action) {
 }
 
 bool InputListener::actionPressed(std::string action) {
-	return actionStates[action].second && !actionStates[action].second;
+	return actionStates[action].second && !actionStates[action].first;
 }
 
 bool InputListener::actionReleased(std::string action) {
-	return !actionStates[action].second && actionStates[action].second;
+	return !actionStates[action].second && actionStates[action].first;
 }
 
 bool InputListener::actionHeld(std::string action) {
-	return actionStates[action].second && actionStates[action].second;
+	return actionStates[action].second && actionStates[action].first;
 }
 
 void InputListener::setActionState(std::string action, bool current) {
@@ -153,6 +153,11 @@ void InputController::key_callback(GLFWwindow* window, int key, int scancode, in
 				consumed = true;
 				bool action_pressed = action == GLFW_PRESS;
 				listener->setActionState(game_action, action_pressed);
+				if (listener->actionPressed(game_action)) {
+					std::cout << "action pressed" << std::endl;
+				} else if (listener->actionReleased(game_action)) {
+					std::cout << "action released" << std::endl;
+				}
 				listener->setActionStrength(game_action, action_pressed ? 1.0f : 0.0f);
 				break;
 			}
@@ -176,6 +181,31 @@ void InputController::joystick_callback(int jid, int event) {
 			active_joystick = joysticks.empty() ? -1 : joysticks[0];
 			std::cout << "Joystick set (" << active_joystick << ")" << std::endl;
 		}
+	}
+}
+
+void InputController::pollKeys(GLFWwindow* window) {
+	bool consumed = false;
+	for (InputListenerPtr* l : listeners) {
+		InputListenerPtr listener = *l;
+		for (std::string game_action : listener->getActions()) {
+			int action_state = glfwGetKey(window, keyboard_bindings[game_action]);
+			//std::cout << "action: " << game_action << std::endl;
+			bool action_pressed = action_state == GLFW_PRESS;
+			consumed = action_pressed;
+			listener->setActionState(game_action, action_pressed);
+			/*if (listener->actionPressed(game_action)) {
+				std::cout << "action pressed" << std::endl;
+			} else if (listener->actionReleased(game_action)) {
+				std::cout << "action released" << std::endl;
+			} */
+			/*else if (listener->actionHeld(game_action)) {
+				std::cout << "action held" << std::endl;
+			}*/
+			listener->setActionStrength(game_action, action_pressed ? 1.0f : 0.0f);
+			if (consumed) break;
+		}
+		if (consumed || !listener->isPassthrough()) break;
 	}
 }
 
