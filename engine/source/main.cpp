@@ -21,6 +21,7 @@
 #include "Node3D.h"
 #include "MeshNode.h"
 #include "Renderer.h"
+#include "GridNode.h"
 
 
 namespace uwu = UWU;
@@ -148,7 +149,7 @@ int main() {
     //std::vector<direction_t> enemyPath = { LEFT, UP, UP, RIGHT, RIGHT, DOWN, DOWN, LEFT };
     std::vector<direction_t> enemyPath = { LEFT, (direction_t)(WAIT | UP), UP, UP, (direction_t)(WAIT | RIGHT), RIGHT, RIGHT, (direction_t)(WAIT | DOWN), DOWN, DOWN, (direction_t)(WAIT | LEFT), LEFT };
     //std::vector<direction_t> enemyPath = { (direction_t) (WAIT | UP), (direction_t) (DOUBLE | UP), (direction_t)(WAIT | RIGHT), (direction_t)(DOUBLE | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(DOUBLE | DOWN), (direction_t)(WAIT | LEFT), (direction_t)(DOUBLE | LEFT) };
-    Enemy *enemy = new Enemy({2, 7, 0}, enemyPath);
+    Enemy *enemy = new Enemy({2, 6, 0}, enemyPath);
     MeshNode *dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), "modelShader");
     dcpNode->transform.scale(0.2f);
     dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
@@ -161,9 +162,9 @@ int main() {
     dcpNode2->transform.rotateX(glm::pi<float>() * 0.5);
     enemy2->addChild(dcpNode2);*/
 
-    Player player(0.0f, 4.0f, 0.25f, 90);
-    player.camera->setAspectRatio(GameController::SCREEN_RATIO);
-    player.camera->makeCurrent();
+    Player *player = new Player(0.0f, 3.0f, 0.25f, 90);
+    player->camera->setAspectRatio(GameController::SCREEN_RATIO);
+    player->camera->makeCurrent();
 
     GameController::currentGrid = std::make_shared<Grid>(g);
 
@@ -175,59 +176,67 @@ int main() {
     Scene scene;
     GameController::currentScene = &scene;
     Node *root = &scene.root;
-
+    GridNode *gridNode = new GridNode(g);
+    root->addChild(player);
+    root->addChild(gridNode);
     root->addChild(enemy);
     //GameController::currentScene->root.addChild(enemy2);
 
-    for (int i = 0; i < g.width(); i++) {
-        for (int j = 0; j < g.height(); j++) {
+    for (int j = 0; j < g.height(); j++) {
+        for (int i = 0; i < g.width(); i++) {
             if (g.coord(i, j) == 1) {
                 MeshNode *wall = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenCube")), "modelShader");
-                wall->transform.translate({ i, -j + g.height(), 0.5f });
+                wall->transform.translate({ i, -j + g.height() - 1, 0.5f });
                 wall->transform.scale(0.5f);
-                root->addChild(wall);
+                gridNode->addChild(wall, i, -j + g.height() - 1);
             } else {
                 MeshNode *floor = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenPlane")), "modelShader");
-                floor->transform.translate({ i, -j + g.height(), 0.0f });
+                floor->transform.translate({ i, -j + g.height() - 1, 0.0f });
                 floor->transform.scale(0.5f);
                 floor->transform.rotateX(glm::radians<float>(90));
-                root->addChild(floor);
+                gridNode->addChild(floor, i, -j + g.height() - 1);
             }
         }
     }
 
     while (!glfwWindowShouldClose(window)) {
+        // ----------- time -----------
         t1 = glfwGetTime();
         dt = t1 - t0;
         t0 = t1;
 
-        std::stringstream ss;
-        ss << "uwu enyin [" << (int) (1.0f / dt) << "fps" << (int) (1000 * dt) << " ms]";
-        glfwSetWindowTitle(window, ss.str().c_str());
+        // ----------- show fps ------------
+        bool show_fps = false;
+        if (show_fps) {
+            std::stringstream ss;
+            ss << "uwu enyin [" << (int) (1.0f / dt) << "fps" << (int) (1000 * dt) << " ms]";
+            glfwSetWindowTitle(window, ss.str().c_str());
+        }
 
+        // ----------- handle input ---------
         glfwPollEvents();
         InputController::pollJoysticks();
         InputController::pollKeys(window);
+
+        // ----------------- update -------------------------
+
+        GameController::update(dt);
+        //player.update(dt);
+        scene.update(dt);
+
+        // ----------------- draw ---------------------------
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (GameController::fillPolygon)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-
-        // ----------------- update -------------------------
-
-        GameController::update(dt);
-        player.update(dt);
-        scene.update(dt);
-
-        // ----------------- draw ---------------------------
-
+        
         // 3D
 
-        glm::mat4 player_view = player.camera->getView();
-        glm::mat4 player_projection = player.camera->getProjection();
+        glm::mat4 player_view = player->camera->getView();
+        glm::mat4 player_projection = player->camera->getProjection();
 
         Renderer::projection = player_projection;
         Renderer::view = player_view;

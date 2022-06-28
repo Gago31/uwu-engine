@@ -28,7 +28,7 @@ Player::Player(float x, float y, float z, float theta_d) {
 void Player::update(float dt) {
     if (Input->actionPressed("b")) {
         glm::vec2 cam_dir = camera->getDirection();
-        std::cout << cam_dir.x << ", " << cam_dir.y << std::endl;
+        std::cout << "Direction: (" << cam_dir.x << ", " << cam_dir.y << "); position: (" << position.x << ", " << position.y << ")" << std::endl;
     }
     if (accept_input) {
         h_axis = Input->actionStrength("right") - Input->actionStrength("left");
@@ -36,16 +36,21 @@ void Player::update(float dt) {
         h_axis = v_axis == 0.0f ? h_axis : 0.0f;
         glm::vec2 nextPos = {
             position.x + v_axis * glm::round(glm::sin(camera->theta)),
-            -(position.y + v_axis * glm::round(glm::cos(camera->theta))) + GameController::currentGrid->height(),
+            -(position.y + v_axis * glm::round(glm::cos(camera->theta))) + GameController::currentGrid->height() - 1,
         };
-        /*if (v_axis != 0.0f) {
-            std::cout << nextPos.x << ", " << nextPos.y << std::endl;
-            std::cout << GameController::currentGrid->coord(nextPos) << std::endl;
-        }*/
+        if (v_axis != 0.0f) {
+            //std::cout << "pos: (" << position.x << ", " << position.y << "); next pos : (" << nextPos.x << ", " << nextPos.y << ") : " << GameController::currentGrid->coord(nextPos) << std::endl;
+            //std::cout <<  << std::endl;
+        }
         v_axis = GameController::currentGrid->coord(nextPos) ? 0.0f : v_axis;
         if (h_axis || v_axis) {
             accept_input = false;
-            GameController::run_turn = (bool) v_axis;
+            camera->setNextState({
+                 position.x + v_axis * glm::round(glm::sin(camera->theta)),
+                 position.y + v_axis * glm::round(glm::cos(camera->theta)),
+                 0.0f }, theta + h_axis * glm::radians<float>(90)
+            );
+            GameController::turnStart((bool) v_axis);
             //std::cout << "turn start" << std::endl;
         }
         if (Input->actionPressed("a")) {
@@ -76,35 +81,31 @@ void Player::update(float dt) {
         };
         /*position.x += walk_speed * v_axis * std::sin(camera->theta) * dt;
         position.y += walk_speed * v_axis * std::cos(camera->theta) * dt;*/
-        if (timer >= GameController::TURN_PERIOD) {
-            camera->theta = theta + h_axis * glm::radians<float>(90);
-            position.x += v_axis * glm::round(glm::sin(camera->theta));
-            position.y += v_axis * glm::round(glm::cos(camera->theta));
-            theta = camera->theta;
-            h_axis = v_axis = 0.0f;
-            timer = 0.0f;
-            accept_input = true;
-            //GameController::run_turn = false;
-        }
+        //if (timer >= GameController::TURN_PERIOD) {
+        //    /*camera->theta = theta + h_axis * glm::radians<float>(90);
+        //    position.x += v_axis * glm::round(glm::sin(camera->theta));
+        //    position.y += v_axis * glm::round(glm::cos(camera->theta));
+        //    theta = camera->theta;
+        //    h_axis = v_axis = 0.0f;
+        //    timer = 0.0f;
+        //    accept_input = true;*/
+        //    turnEnd();
+        //    //GameController::run_turn = false;
+        //}
         camera->setPos(camPos);
     }
     camera->update();
+}
 
-    /*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        cameraPhi -= 2 * dt;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        cameraPhi += 2 * dt;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        cameraPhi -= 2 * dt;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        cameraPhi += 2 * dt;
-    }*/
+void Player::turnEnd() {
+    camera->theta = theta + h_axis * glm::radians<float>(90);
+    position.x += v_axis * glm::round(glm::sin(camera->theta));
+    position.y += v_axis * glm::round(glm::cos(camera->theta));
+    theta = camera->theta;
+    camera->setNextState(camera->getPos(), camera->theta);
+    h_axis = v_axis = 0.0f;
+    timer = 0.0f;
+    accept_input = true;
 }
 
 void Player::setInputListener(InputListenerPtr listener) {

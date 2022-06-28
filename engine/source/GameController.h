@@ -13,7 +13,8 @@ class GameController {
         /*static unsigned int SCR_WIDTH = 1920;
         static unsigned int SCR_HEIGHT = 1080;*/
         inline static float SCREEN_RATIO = float(SCR_WIDTH) / float(SCR_HEIGHT);;
-        inline static bool run_turn = false;
+        inline static bool run_turn = true;
+        inline static bool update_world = false;
         inline static float TURN_PERIOD = 0.5f;
         inline static float SQUARE_SIZE = 1.0f;
         inline static float TURN_PROGRESS = 0.0f;
@@ -21,6 +22,11 @@ class GameController {
         inline static GridPtr currentGrid;
         inline static Scene *currentScene;
         inline static Camera *currentCamera;
+        static void turnStart(bool update_env) {
+            currentScene->root._turnStart();
+            update_world = update_env;
+            run_turn = true;
+        }
         static void initialize() {
             SCR_WIDTH = 1280; // 1920
             SCR_HEIGHT = 720; // 1080
@@ -35,8 +41,10 @@ class GameController {
 
                 if (TURN_TIME == TURN_PERIOD) {
                     TURN_PROGRESS = 1.0f;
+                    update_world = false;
                     run_turn = false;
                     TURN_TIME = 0.0f;
+                    currentScene->root._turnEnd();
                 }
             }
         }

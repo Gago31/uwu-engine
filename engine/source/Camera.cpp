@@ -4,7 +4,9 @@
 
 Camera::Camera(glm::vec3 pos, float theta_, float aspect_ratio) {
     viewPos = pos;
-    theta = theta_; 
+    nextPos = pos;
+    theta = theta_;
+    nextTheta = theta_;
     ratio = aspect_ratio;
     near = 0.1f;
     far = 20.0f;
@@ -16,6 +18,11 @@ void Camera::setPos(glm::vec3 new_pos) {
 
 void Camera::setPos(float x, float y, float z) {
     viewPos = { x, y, z };
+}
+
+void Camera::setNextState(glm::vec3 next_pos, float next_theta) {
+    nextPos = next_pos;
+    nextTheta = next_theta;
 }
 
 void Camera::setAspectRatio(float new_ratio) {
@@ -40,8 +47,15 @@ const glm::vec3 Camera::getPos() const {
     return viewPos;
 }
 
+const glm::vec3 Camera::getNextPos() const {
+    return nextPos;
+}
+
 glm::vec2 Camera::getDirection() {
-    return { glm::sign(approxTrig(glm::cos(theta))), glm::sign(approxTrig(glm::sin(theta))) };
+    return { 
+        glm::sign(approxTrig(glm::sin(theta)) + approxTrig(glm::sin(nextTheta))), 
+        glm::sign(approxTrig(glm::cos(theta)) + approxTrig(glm::cos(nextTheta))) 
+    };
 }
 
 float Camera::approxTrig(float value) {

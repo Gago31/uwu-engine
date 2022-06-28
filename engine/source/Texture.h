@@ -16,7 +16,7 @@ class Texture2D {
 		unsigned int filter_max;
 
 		Texture2D();
-		void Generate(unsigned int w, unsigned int h, unsigned char *data);
+		void Generate(unsigned int w, unsigned int h, unsigned char *data, bool model_texture = false);
 		void Bind() const;
 };
 

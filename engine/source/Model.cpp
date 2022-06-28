@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "ResourceManager.h"
 
 
 void Model::Draw(ShaderPtr shader) {
@@ -111,7 +112,9 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
 	std::string filename = std::string(path);
 	filename = directory + '/' + filename;
 
-	unsigned int textureID;
+	return ResourceManager::loadTexture(filename.c_str(), false, std::string(path), true).ID;
+
+	/*unsigned int textureID;
 	glGenTextures(1, &textureID);
 
 	int width, height, nrComponents;
@@ -145,5 +148,5 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
 		stbi_image_free(data);
 	}
 
-	return textureID;
+	return textureID;*/
 }

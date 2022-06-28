@@ -17,7 +17,7 @@ class ResourceManager {
 		static std::map<std::string, Model> models;
 		static Shader loadShader(const char *vShaderPath, const char *fShaderPath, const char *gShaderPath, std::string name);
 		static Shader getShader(std::string name);
-		static Texture2D loadTexture(const char* path, bool alpha, std::string name);
+		static Texture2D loadTexture(const char* path, bool alpha, std::string name, bool modelTexture = false);
 		static Texture2D getTexture(std::string name);
 		static Model loadModel(const char* path, std::string name);
 		static Model getModel(std::string name);
@@ -25,7 +25,7 @@ class ResourceManager {
 	private:
 		ResourceManager() { }
 		static Shader loadShaderFromFile(const char* vShaderPath, const char* fShaderPath, const char* gShaderPath = nullptr);
-		static Texture2D loadTextureFromFile(const char* path, bool alpha);
+		static Texture2D loadTextureFromFile(const char* path, bool alpha, bool modelTexture = false);
 		static Model loadModelFromFile(const char *path);
 };
 

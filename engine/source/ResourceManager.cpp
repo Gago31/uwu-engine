@@ -21,7 +21,9 @@ void ResourceManager::clear() {
 // Shaders
 
 Shader ResourceManager::loadShader(const char* vShaderPath, const char* fShaderPath, const char* gShaderPath, std::string name) {
-	shaders[name] = loadShaderFromFile(vShaderPath, fShaderPath, gShaderPath);
+	if (!shaders.count(name)) {
+		shaders[name] = loadShaderFromFile(vShaderPath, fShaderPath, gShaderPath);
+	}
 	return shaders[name];
 }
 
@@ -70,8 +72,11 @@ Shader ResourceManager::loadShaderFromFile(const char* vShaderPath, const char* 
 
 // Textures
 
-Texture2D ResourceManager::loadTexture(const char* path, bool alpha, std::string name) {
-	textures[name] = loadTextureFromFile(path, alpha);
+Texture2D ResourceManager::loadTexture(const char* path, bool alpha, std::string name, bool modelTexture) {
+	if (!textures.count(name)) {
+		textures[name] = loadTextureFromFile(path, alpha, modelTexture);
+		std::cout << "Texture " << name << " loaded" << std::endl;
+	}
 	return textures[name];
 }
 
@@ -79,7 +84,7 @@ Texture2D ResourceManager::getTexture(std::string name) {
 	return textures[name];
 }
 
-Texture2D ResourceManager::loadTextureFromFile(const char* path, bool alpha) {
+Texture2D ResourceManager::loadTextureFromFile(const char* path, bool alpha, bool modelTexture) {
 	Texture2D texture;
 	if (alpha) {
 		texture.InternalFormat = GL_RGBA;
@@ -88,7 +93,17 @@ Texture2D ResourceManager::loadTextureFromFile(const char* path, bool alpha) {
 
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
-	texture.Generate(width, height, data);
+	if (modelTexture) {
+		if (nrChannels == 1) {
+			texture.ImageFormat = GL_RED;
+		} else if (nrChannels == 3) {
+			texture.ImageFormat = GL_RGB;
+		} else if (nrChannels == 4) {
+			texture.ImageFormat = GL_RGBA;
+		}
+		texture.filter_min = GL_LINEAR_MIPMAP_LINEAR;
+	}
+	texture.Generate(width, height, data, modelTexture);
 	stbi_image_free(data);
 	return texture;
 }
@@ -96,7 +111,9 @@ Texture2D ResourceManager::loadTextureFromFile(const char* path, bool alpha) {
 // Models
 
 Model ResourceManager::loadModel(const char* path, std::string name) {
-	models[name] = loadModelFromFile(path);
+	if (!models.count(name)) {
+		models[name] = loadModelFromFile(path);
+	}
 	return models[name];
 }
 

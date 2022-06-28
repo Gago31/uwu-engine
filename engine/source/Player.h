@@ -3,9 +3,10 @@
 
 #include <glm/glm.hpp>
 #include "Camera.h"
+#include "Node.h"
 #include "InputController.h"
 
-class Player {
+class Player : public Node {
 	public:
 		CameraPtr camera;
 		InputListenerPtr Input;
@@ -20,7 +21,8 @@ class Player {
 		Player(float x, float y, float z, float theta_d = 0.0f);
 		void setInputListener(InputListenerPtr listener);
 		void setCamera(CameraPtr cam);
-		void update(float delta);
+		void update(float delta) override;
+		void turnEnd() override;
 };
 
 #endif // !PLAYER_H

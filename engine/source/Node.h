@@ -54,6 +54,20 @@ class Node {
 				child->_render();
 			}
 		}
+		virtual void _turnStart() {
+			turnStart();
+			for (Node* child : children) {
+				child->_turnStart();
+			}
+		}
+		virtual void turnStart() { }
+		virtual void _turnEnd() {
+			turnEnd();
+			for (Node* child : children) {
+				child->_turnEnd();
+			}
+		}
+		virtual void turnEnd() { }
 };
 
 using NodePtr = std::shared_ptr<Node>;
