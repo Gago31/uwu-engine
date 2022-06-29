@@ -12,8 +12,11 @@ class GridNode : public Node3D {
 		Grid grid;
 		std::vector<std::vector<Node*>> children;
 		std::set<std::pair<int, int>> visible_children;
-		GridNode() = default;
+		GridNode() {
+			name = "Grid";
+		};
 		GridNode(Grid& _grid) {
+			name = "Grid";
 			grid = _grid;
 			children.resize(grid.height());
 			for (int j = 0; j < grid.height(); j++) {
@@ -22,6 +25,50 @@ class GridNode : public Node3D {
 					visible_children.insert({ i, j});
 				}
 			}
+		}
+		GridNode(std::string node_name, Grid& _grid) {
+			name = node_name;
+			grid = _grid;
+			children.resize(grid.height());
+			for (int j = 0; j < grid.height(); j++) {
+				for (int i = 0; i < grid.width(); i++) {
+					children[j].push_back(new Node());
+					visible_children.insert({ i, j });
+				}
+			}
+		}
+		void build() {
+			for (int j = 0; j < grid.height(); j++) {
+				for (int i = 0; i < grid.width(); i++) {
+					if (grid.coord(i, j) == 1) {
+						MeshNode* wall = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenCube")), "modelShader");
+						wall->transform.translate({ i, -j + grid.height() - 1, 0.5f });
+						wall->transform.scale(0.5f);
+						addChild(wall, i, -j + grid.height() - 1);
+					} else {
+						MeshNode* floor = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenPlane")), "modelShader");
+						floor->transform.translate({ i, -j + grid.height() - 1, 0.0f });
+						floor->transform.scale(0.5f);
+						floor->transform.rotateX(glm::radians<float>(90));
+						addChild(floor, i, -j + grid.height() - 1);
+					}
+				}
+			}
+		}
+		void setCollision() {
+			GameController::currentGrid = std::make_shared<Grid>(grid);
+		}
+		virtual Node* findChild(std::string child_name) {
+			for (std::vector<Node*>& row : children) {
+				for (Node* child : row) {
+					if (child->name == child_name) return child;
+				}
+			}
+			return nullptr;
+		}
+		virtual Node* getChild(int x, int y) {
+			if (children.size() >= y || children[y].size() >= x) return nullptr;
+			return children[y][x];
 		}
 		//void addChild(Node *child) override { return; }
 		void addChild(Node *child, int x, int y) {

@@ -8,9 +8,10 @@
 #include "Texture.h"
 #include "Sprite.h"
 
+
 class SpriteRenderer {
 	public:
-		SpriteRenderer(ShaderPtr shader);
+		SpriteRenderer(ShaderPtr _shader);
 		~SpriteRenderer();
 
 		void DrawSprite(TexturePtr texture, glm::vec2 position, glm::vec2 size = glm::vec2(10.0f, 10.0f), 

@@ -5,6 +5,7 @@
 #include <memory>
 #include "ResourceManager.h"
 #include <iostream>
+#include "root_directory.h"
 
 
 Player::Player(glm::vec3 pos, float theta_d) {
@@ -28,6 +29,7 @@ Player::Player(float x, float y, float z, float theta_d) {
 void Player::update(float dt) {
     if (Input->actionPressed("b")) {
         glm::vec2 cam_dir = camera->getDirection();
+        ResourceManager::loadShader(UWU::getPath("assets/shaders/model_lighting_shader.vs").string().c_str(), UWU::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
         std::cout << "Direction: (" << cam_dir.x << ", " << cam_dir.y << "); position: (" << position.x << ", " << position.y << ")" << std::endl;
     }
     if (accept_input) {

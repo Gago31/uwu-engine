@@ -21,9 +21,9 @@ void ResourceManager::clear() {
 // Shaders
 
 Shader ResourceManager::loadShader(const char* vShaderPath, const char* fShaderPath, const char* gShaderPath, std::string name) {
-	if (!shaders.count(name)) {
-		shaders[name] = loadShaderFromFile(vShaderPath, fShaderPath, gShaderPath);
-	}
+	//if (!shaders.count(name)) {
+	shaders[name] = loadShaderFromFile(vShaderPath, fShaderPath, gShaderPath);
+	//}
 	return shaders[name];
 }
 

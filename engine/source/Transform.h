@@ -2,12 +2,9 @@
 #define TRANSFORM_H
 
 #include <memory>
-#include <grafica/transformations.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace gr = Grafica;
-namespace tr = Grafica::Transformations;
 
 class Transform {
 	public:

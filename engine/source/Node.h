@@ -10,12 +10,28 @@ class Node {
 	public:
 		Node *parent = nullptr;
 		std::vector<Node*> children;
-		Node() = default;
+		std::string name;
+		Node() {
+			name = "Node";
+		};
+		Node(std::string node_name) {
+			name = node_name;
+		}
 		virtual void update(float dt) { }
 		virtual void render(glm::mat4 _transform = glm::mat4(1.0)) { }
 		/*void addChild(Node& child) {
 			children.push_back(std::make_shared<Node>(child));
 		}*/
+		virtual Node* findChild(std::string child_name) {
+			for (Node* child : children) {
+				if (child->name == child_name) return child;
+			}
+			return nullptr;
+		}
+		virtual Node* getChild(int index) {
+			if (children.size() >= index) return nullptr;
+			return children[index];
+		}
 		virtual void addChild(Node *child) final {
 			//std::cout << "child added";
 			children.push_back(child);

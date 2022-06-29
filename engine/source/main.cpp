@@ -22,6 +22,7 @@
 #include "MeshNode.h"
 #include "Renderer.h"
 #include "GridNode.h"
+#include "TextRenderer.h"
 
 
 namespace uwu = UWU;
@@ -31,6 +32,7 @@ GLFWwindow *window;
 
 void loadResources() {
     ResourceManager::loadShader(uwu::getPath("assets/shaders/sprite_shader.vs").string().c_str(), uwu::getPath("assets/shaders/sprite_shader.fs").string().c_str(), nullptr, "spriteShader");
+    ResourceManager::loadShader(uwu::getPath("assets/shaders/text_shader.vs").string().c_str(), uwu::getPath("assets/shaders/text_shader.fs").string().c_str(), nullptr, "textShader");
     ResourceManager::loadShader(uwu::getPath("assets/shaders/model_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_shader.fs").string().c_str(), nullptr, "modelShader");
     //ResourceManager::loadShader(uwu::getPath("assets/shaders/model_lighting_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
     //ResourceManager::loadShader(uwu::getPath("assets/shaders/mesh_shader.vs").string().c_str(), uwu::getPath("assets/shaders/mesh_shader.fs").string().c_str(), nullptr, "meshShader");
@@ -146,6 +148,9 @@ int main() {
     SpriteRenderer renderer2d(std::make_shared<Shader>(ResourceManager::getShader("spriteShader")));
     glm::mat4 spriteProjection = glm::ortho(0.0f, static_cast<float>(GameController::SCR_WIDTH), static_cast<float>(GameController::SCR_HEIGHT), 0.0f, -1.0f, 1.0f);
 
+    TextRenderer textRenderer;
+    textRenderer.init();
+
     //std::vector<direction_t> enemyPath = { LEFT, UP, UP, RIGHT, RIGHT, DOWN, DOWN, LEFT };
     std::vector<direction_t> enemyPath = { LEFT, (direction_t)(WAIT | UP), UP, UP, (direction_t)(WAIT | RIGHT), RIGHT, RIGHT, (direction_t)(WAIT | DOWN), DOWN, DOWN, (direction_t)(WAIT | LEFT), LEFT };
     //std::vector<direction_t> enemyPath = { (direction_t) (WAIT | UP), (direction_t) (DOUBLE | UP), (direction_t)(WAIT | RIGHT), (direction_t)(DOUBLE | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(DOUBLE | DOWN), (direction_t)(WAIT | LEFT), (direction_t)(DOUBLE | LEFT) };
@@ -154,6 +159,7 @@ int main() {
     dcpNode->transform.scale(0.2f);
     dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
     enemy->addChild(dcpNode);
+
 
     /*std::vector<direction_t> enemyPath2 = { (direction_t)(WAIT | UP), (direction_t)(WAIT | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(WAIT | LEFT) };
     Enemy* enemy2 = new Enemy({ 5, 5, 0 }, enemyPath2);
@@ -166,8 +172,6 @@ int main() {
     player->camera->setAspectRatio(GameController::SCREEN_RATIO);
     player->camera->makeCurrent();
 
-    GameController::currentGrid = std::make_shared<Grid>(g);
-
     float t0 = glfwGetTime(), t1, dt;
 
 
@@ -177,27 +181,13 @@ int main() {
     GameController::currentScene = &scene;
     Node *root = &scene.root;
     GridNode *gridNode = new GridNode(g);
+    gridNode->build();
+    gridNode->setCollision();
     root->addChild(player);
     root->addChild(gridNode);
     root->addChild(enemy);
     //GameController::currentScene->root.addChild(enemy2);
 
-    for (int j = 0; j < g.height(); j++) {
-        for (int i = 0; i < g.width(); i++) {
-            if (g.coord(i, j) == 1) {
-                MeshNode *wall = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenCube")), "modelShader");
-                wall->transform.translate({ i, -j + g.height() - 1, 0.5f });
-                wall->transform.scale(0.5f);
-                gridNode->addChild(wall, i, -j + g.height() - 1);
-            } else {
-                MeshNode *floor = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenPlane")), "modelShader");
-                floor->transform.translate({ i, -j + g.height() - 1, 0.0f });
-                floor->transform.scale(0.5f);
-                floor->transform.rotateX(glm::radians<float>(90));
-                gridNode->addChild(floor, i, -j + g.height() - 1);
-            }
-        }
-    }
 
     while (!glfwWindowShouldClose(window)) {
         // ----------- time -----------
@@ -240,9 +230,7 @@ int main() {
 
         Renderer::projection = player_projection;
         Renderer::view = player_view;
-        /*ResourceManager::getShader("modelShader").setVector3f("lightColor", { 1.0f, 1.0f, 1.0f });
-        ResourceManager::getShader("modelShader").setVector3f("lightPos", { 5.0f, 5.0f, 5.0f });
-        ResourceManager::getShader("modelShader").setVector3f("viewPos", player.camera->getPos());*/
+        
         
         scene.render();
 
@@ -250,6 +238,7 @@ int main() {
 
         // GUI
         glClear(GL_DEPTH_BUFFER_BIT);
+        textRenderer.renderText(std::make_shared<Shader>(ResourceManager::getShader("textShader")), "Holi tengo sueño áéíóú", 300.0f, 32.0f, 1.0f, glm::vec3(0.0f, 0.0f, 0.0f));
 
         ResourceManager::getShader("spriteShader").use();
         ResourceManager::getShader("spriteShader").setMatrix4f("projection", spriteProjection);

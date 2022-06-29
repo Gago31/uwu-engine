@@ -12,6 +12,12 @@ class MeshNode : public VisualNode {
 		ModelPtr model;
 		MeshNode() = default;
 		MeshNode(ModelPtr m, std::string shader_name) : model(m) {
+			name = "Mesh";
+			shaderName = shader_name;
+			shader = std::make_shared<Shader>(ResourceManager::getShader(shader_name));
+		}
+		MeshNode(std::string node_name, ModelPtr m, std::string shader_name) : model(m) {
+			name = node_name;
 			shaderName = shader_name;
 			shader = std::make_shared<Shader>(ResourceManager::getShader(shader_name));
 		}

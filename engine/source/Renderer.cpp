@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "GameController.h"
 
 
 std::set<std::string> Renderer::shaderNames;
@@ -15,6 +16,9 @@ void Renderer::render() {
 		ResourceManager::getShader(shader_name).use();
 		ResourceManager::getShader(shader_name).setMatrix4f("projection", projection);
 		ResourceManager::getShader(shader_name).setMatrix4f("view", view);
+		/*ResourceManager::getShader("modelShader").setVector3f("lightColor", { 1.0f, 1.0f, 1.0f });
+		ResourceManager::getShader("modelShader").setVector3f("lightPos", { 5.0f, 5.0f, 2.0f });
+		ResourceManager::getShader("modelShader").setVector3f("viewPos", GameController::currentCamera->getPos());*/
 
 		for (Renderable renderable : nodes[shader_name]) {
 			renderable.node->render(renderable.transform);
