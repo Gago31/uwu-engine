@@ -29,8 +29,10 @@ Player::Player(float x, float y, float z, float theta_d) {
 void Player::update(float dt) {
     if (Input->actionPressed("b")) {
         glm::vec2 cam_dir = camera->getDirection();
-        ResourceManager::loadShader(UWU::getPath("assets/shaders/model_lighting_shader.vs").string().c_str(), UWU::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
         std::cout << "Direction: (" << cam_dir.x << ", " << cam_dir.y << "); position: (" << position.x << ", " << position.y << ")" << std::endl;
+        Node *textbox = GameController::currentScene->root.findChild("textbox");
+        textbox->visible = !textbox->visible;
+        std::cout << textbox->visible << std::endl;
     }
     if (accept_input) {
         h_axis = Input->actionStrength("right") - Input->actionStrength("left");
@@ -57,17 +59,24 @@ void Player::update(float dt) {
         }
         if (Input->actionPressed("a")) {
             if (a) {
-                std::vector<direction_t> enemyPath = { (direction_t)(WAIT | UP), (direction_t)(WAIT | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(WAIT | LEFT) };
-                Enemy* enemy = new Enemy({ 5, 5, 0 }, enemyPath);
-                MeshNode* dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), "modelShader");
-                dcpNode->transform.scale(0.2f);
-                dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
-                enemy->addChild(dcpNode);
-                GameController::currentScene->root.addChild(enemy);
-                std::cout << "DCP added" << std::endl;
+                if (GameController::currentScene->root.findChild("DCP2") == nullptr) {
+                    std::vector<direction_t> enemyPath = { (direction_t)(WAIT | UP), (direction_t)(WAIT | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(WAIT | LEFT) };
+                    Enemy* enemy = new Enemy({ 5, 4, 0 }, enemyPath);
+                    enemy->name = "DCP2";
+                    MeshNode* dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), "modelShader");
+                    dcpNode->transform.scale(0.2f);
+                    dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
+                    enemy->addChild(dcpNode);
+                    GameController::currentScene->root.addChild(enemy);
+                    std::cout << "DCP added" << std::endl;
+                } else {
+                    GameController::currentScene->root.findChild("DCP2")->visible = true;
+
+                }
                 a = false;
             } else {
-                GameController::currentScene->root.children.back()->remove();
+                //GameController::currentScene->root.findChild("DCP2")->remove();
+                GameController::currentScene->root.findChild("DCP2")->visible = false;
                 std::cout << "DCP fucking killed" << std::endl;
                 a = true;
             }

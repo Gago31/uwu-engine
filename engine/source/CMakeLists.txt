@@ -15,7 +15,7 @@ add_library(uwu_lib STATIC
     "Grid.h" 
 	"Grid.cpp"
     "Enemy.h"
-    "Enemy.cpp" "Mesh.cpp" "Mesh.h" "Shader.h" "Shader.cpp" "Model.cpp" "Model.h" "Transform.h" "Sprite.h" "Sprite.cpp" "Map.h" "Map.cpp" "SpriteRenderer.h" "Texture.h" "Texture.cpp" "SpriteRenderer.cpp" "Transform.cpp" "ResourceManager.h" "ResourceManager.cpp" "InputController.h" "InputController.cpp" "Camera.h" "Camera.cpp" "Player.h" "Player.cpp" "Renderer.h" "Renderer.cpp" "GameController.h" "SceneGraph.h" "SceneGraph.cpp" "Node.h" "Node3D.h" "GridNode.h" "MeshNode.h" "GUINode.h" "TextRenderer.h")
+    "Enemy.cpp" "Mesh.cpp" "Mesh.h" "Shader.h" "Shader.cpp" "Model.cpp" "Model.h" "Transform.h" "Sprite.h" "Sprite.cpp" "Map.h" "Map.cpp" "Renderer2D.h" "Texture.h" "Texture.cpp" "Renderer2D.cpp" "Transform.cpp" "ResourceManager.h" "ResourceManager.cpp" "InputController.h" "InputController.cpp" "Camera.h" "Camera.cpp" "Player.h" "Player.cpp" "Renderer.h" "Renderer.cpp" "GameController.h" "SceneGraph.h" "SceneGraph.cpp" "Node.h" "Node3D.h" "GridNode.h" "MeshNode.h" "GUINode.h" "TextRenderer.h" "ParticleEmitter.h" "Node2D.h" "SpriteNode.h")
 
 include(GenerateExportHeader)
 generate_export_header(uwu_lib)

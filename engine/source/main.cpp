@@ -12,7 +12,7 @@
 #include "Model.h"
 #include "Shader.h"
 #include "Sprite.h"
-#include "SpriteRenderer.h"
+#include "Renderer2D.h"
 #include "ResourceManager.h"
 #include "InputController.h"
 #include "Player.h"
@@ -23,6 +23,7 @@
 #include "Renderer.h"
 #include "GridNode.h"
 #include "TextRenderer.h"
+#include "SpriteNode.h"
 
 
 namespace uwu = UWU;
@@ -31,15 +32,27 @@ GLFWwindow *window;
 
 
 void loadResources() {
+    // Shaders
     ResourceManager::loadShader(uwu::getPath("assets/shaders/sprite_shader.vs").string().c_str(), uwu::getPath("assets/shaders/sprite_shader.fs").string().c_str(), nullptr, "spriteShader");
     ResourceManager::loadShader(uwu::getPath("assets/shaders/text_shader.vs").string().c_str(), uwu::getPath("assets/shaders/text_shader.fs").string().c_str(), nullptr, "textShader");
+    //ResourceManager::loadShader(uwu::getPath("assets/shaders/gas_particle_shader.vs").string().c_str(), uwu::getPath("assets/shaders/gas_particle_shader.fs").string().c_str(), nullptr, "particleShader");
     ResourceManager::loadShader(uwu::getPath("assets/shaders/model_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_shader.fs").string().c_str(), nullptr, "modelShader");
     //ResourceManager::loadShader(uwu::getPath("assets/shaders/model_lighting_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
     //ResourceManager::loadShader(uwu::getPath("assets/shaders/mesh_shader.vs").string().c_str(), uwu::getPath("assets/shaders/mesh_shader.fs").string().c_str(), nullptr, "meshShader");
+    
+    // Textures
     ResourceManager::loadTexture(uwu::getPath("assets/imgs/uwu.png").string().c_str(), true, "uwu");
+    ResourceManager::loadTexture(uwu::getPath("assets/imgs/textbox.png").string().c_str(), true, "textBox");
+    
+    // Models
     ResourceManager::loadModel(uwu::getPath("assets/models/dcp.obj").string().c_str(), "DCP");
     ResourceManager::loadModel(uwu::getPath("assets/models/greenCube.obj").string().c_str(), "greenCube");
     ResourceManager::loadModel(uwu::getPath("assets/models/greenPlane.obj").string().c_str(), "greenPlane");
+    /*for (int i = 0; i < 9; i++) {
+        std::ostringstream ss;
+        ss << "assets/imgs/poison_gas/gas0" << i << ".png";
+        ResourceManager::loadTexture(uwu::getPath(ss.str()).string().c_str(), true, "uwu");
+    }*/
 }
 
 int setUpOpenGL() {
@@ -145,8 +158,10 @@ int main() {
     Sprite gpuwu(std::make_shared<Texture2D>(ResourceManager::getTexture("uwu")));
     gpuwu.transform.translate(16.0f, 620.0f);
 
-    SpriteRenderer renderer2d(std::make_shared<Shader>(ResourceManager::getShader("spriteShader")));
-    glm::mat4 spriteProjection = glm::ortho(0.0f, static_cast<float>(GameController::SCR_WIDTH), static_cast<float>(GameController::SCR_HEIGHT), 0.0f, -1.0f, 1.0f);
+    Sprite textBox(std::make_shared<Texture2D>(ResourceManager::getTexture("textBox")));
+    textBox.transform.translate(40.0f, 500.0f);
+
+    Renderer2D::initialize(GameController::SCR_WIDTH, GameController::SCR_HEIGHT);
 
     TextRenderer textRenderer;
     textRenderer.init();
@@ -186,6 +201,8 @@ int main() {
     root->addChild(player);
     root->addChild(gridNode);
     root->addChild(enemy);
+    root->addChild(new SpriteNode("textbox", std::make_shared<Sprite>(textBox), "spriteShader"));
+    root->addChild(new SpriteNode("gpuwu", std::make_shared<Sprite>(gpuwu), "spriteShader"));
     //GameController::currentScene->root.addChild(enemy2);
 
 
@@ -211,10 +228,11 @@ int main() {
         // ----------------- update -------------------------
 
         GameController::update(dt);
-        //player.update(dt);
         scene.update(dt);
 
         // ----------------- draw ---------------------------
+
+        glEnable(GL_DEPTH_TEST);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -231,25 +249,21 @@ int main() {
         Renderer::projection = player_projection;
         Renderer::view = player_view;
         
-        
         scene.render();
 
         Renderer::render();
 
         // GUI
-        glClear(GL_DEPTH_BUFFER_BIT);
-        textRenderer.renderText(std::make_shared<Shader>(ResourceManager::getShader("textShader")), "Holi tengo sueño áéíóú", 300.0f, 32.0f, 1.0f, glm::vec3(0.0f, 0.0f, 0.0f));
-
-        ResourceManager::getShader("spriteShader").use();
-        ResourceManager::getShader("spriteShader").setMatrix4f("projection", spriteProjection);
-        //ResourceManager::getShader("spriteShader").setInt("image", gpuwu.texture->ID);
-        renderer2d.DrawSprite(std::make_shared<Sprite>(gpuwu));
-
+        //glClear(GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
+        Renderer2D::render();
+        textRenderer.renderText(std::make_shared<Shader>(ResourceManager::getShader("textShader")), "Esto es un texto.", 70.0f, 164.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
         glfwSwapBuffers(window);
     }
 
     ResourceManager::clear();
+    Renderer2D::clear();
 
     glfwTerminate();
     return 0;

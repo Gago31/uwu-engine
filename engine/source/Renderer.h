@@ -24,8 +24,6 @@ class Renderer {
 		//static void setCamera(Camera& new_cam);
 		static void enqueue(VisualNode *node, glm::mat4 _transform);
 	private:
-		//static CameraPtr currentCamera;
-		//static std::vector<ModelPtr> models;
 		Renderer() { }
 };
 

@@ -40,7 +40,7 @@ class TextRenderer {
 				return -1;
 			}
 
-			FT_Set_Pixel_Sizes(face, 0, 48);
+			FT_Set_Pixel_Sizes(face, 0, 32);
 
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
