@@ -28,19 +28,19 @@ class TextRenderer {
 		unsigned int VBO;
 	public:
 		TextRenderer() {}
-		int init() {
+		int init(std::string path, int font_size = 32) {
 			int err = FT_Init_FreeType(&library);
 			if (err) {
 				std::cout << "Error initializing Freetype" << std::endl;
 				return -1;
 			}
-			err = FT_New_Face(library, UWU::getPath("assets/fonts/DelaGothicOne-Regular.ttf").string().c_str(), 0, &face);
+			err = FT_New_Face(library, UWU::getPath(path).string().c_str(), 0, &face);
 			if (err) {
 				std::cout << "Error loading font" << std::endl;
 				return -1;
 			}
 
-			FT_Set_Pixel_Sizes(face, 0, 32);
+			FT_Set_Pixel_Sizes(face, 0, font_size);
 
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 

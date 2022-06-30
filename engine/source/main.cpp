@@ -24,6 +24,7 @@
 #include "GridNode.h"
 #include "TextRenderer.h"
 #include "SpriteNode.h"
+#include "TextBox.h"
 
 
 namespace uwu = UWU;
@@ -164,7 +165,7 @@ int main() {
     Renderer2D::initialize(GameController::SCR_WIDTH, GameController::SCR_HEIGHT);
 
     TextRenderer textRenderer;
-    textRenderer.init();
+    textRenderer.init("assets/fonts/DelaGothicOne-Regular.ttf");
 
     //std::vector<direction_t> enemyPath = { LEFT, UP, UP, RIGHT, RIGHT, DOWN, DOWN, LEFT };
     std::vector<direction_t> enemyPath = { LEFT, (direction_t)(WAIT | UP), UP, UP, (direction_t)(WAIT | RIGHT), RIGHT, RIGHT, (direction_t)(WAIT | DOWN), DOWN, DOWN, (direction_t)(WAIT | LEFT), LEFT };
@@ -201,7 +202,12 @@ int main() {
     root->addChild(player);
     root->addChild(gridNode);
     root->addChild(enemy);
-    root->addChild(new SpriteNode("textbox", std::make_shared<Sprite>(textBox), "spriteShader"));
+    //root->addChild(new SpriteNode("textbox", std::make_shared<Sprite>(textBox), "spriteShader"));
+    TextBox *textBoxNode = new TextBox(std::make_shared<Sprite>(textBox), "assets/fonts/DelaGothicOne-Regular.ttf");
+    textBoxNode->text = "Esto es un texto.";
+    textBoxNode->transform.translate(70.0f, 164.0f);
+    textBoxNode->hide();
+    root->addChild(textBoxNode);
     root->addChild(new SpriteNode("gpuwu", std::make_shared<Sprite>(gpuwu), "spriteShader"));
     //GameController::currentScene->root.addChild(enemy2);
 
@@ -257,7 +263,7 @@ int main() {
         //glClear(GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
         Renderer2D::render();
-        textRenderer.renderText(std::make_shared<Shader>(ResourceManager::getShader("textShader")), "Esto es un texto.", 70.0f, 164.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+        //textRenderer.renderText(std::make_shared<Shader>(ResourceManager::getShader("textShader")), "Esto es un texto.", 70.0f, 164.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
         glfwSwapBuffers(window);
     }

@@ -11,13 +11,13 @@ class Node {
 		Node *parent = nullptr;
 		std::vector<Node*> children;
 		std::string name;
+		bool visible = true;
 		Node() {
 			name = "Node";
 		};
 		Node(std::string node_name) {
 			name = node_name;
 		}
-		bool visible = true;
 		virtual void update(float dt) { }
 		virtual void render(glm::mat4 _transform = glm::mat4(1.0)) { }
 		/*void addChild(Node& child) {
@@ -95,6 +95,8 @@ class Node {
 			}
 		}
 		virtual void turnEnd() { }
+		void hide() { visible = false; }
+		void show() { visible = true; }
 };
 
 using NodePtr = std::shared_ptr<Node>;
