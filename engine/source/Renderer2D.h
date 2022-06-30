@@ -20,11 +20,11 @@ struct Renderable2D {
 class Renderer2D {
 	public:
 		static void initialize(int width, int height);
-		static void DrawSprite(VisualNode2D* node);
+		static void DrawSprite(VisualNode2D* node, glm::mat4 _transform = glm::mat4(1.0f));
 		static void setResolution(int width, int height);
 		static void enqueue(VisualNode2D* node, glm::mat4 _transform);
 		static void clear();
-		static void render(glm::mat4 _transform = glm::mat4(1.0f));
+		static void render();
 	private:
 		inline static int WIDTH;
 		inline static int HEIGHT;

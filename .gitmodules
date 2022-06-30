@@ -1,3 +1,6 @@
 [submodule "libs/grafica_cpp"]
 	path = libs/grafica_cpp
 	url = git@github.com:dantros/grafica_cpp.git
+[submodule "libs/json"]
+	path = libs/json
+	url = git@github.com:nlohmann/json.git

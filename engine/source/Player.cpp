@@ -30,7 +30,7 @@ void Player::update(float dt) {
     if (Input->actionPressed("b")) {
         glm::vec2 cam_dir = camera->getDirection();
         std::cout << "Direction: (" << cam_dir.x << ", " << cam_dir.y << "); position: (" << position.x << ", " << position.y << ")" << std::endl;
-        Node *textbox = GameController::currentScene->root.findChild("textbox");
+        Node *textbox = GameController::currentScene->root.findChild("TextBox");
         textbox->visible = !textbox->visible;
         std::cout << textbox->visible << std::endl;
     }

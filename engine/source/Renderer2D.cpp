@@ -43,20 +43,23 @@ void Renderer2D::enqueue(VisualNode2D* node, glm::mat4 _transform) {
 	nodes[node->shaderName].push_back({ node, _transform });
 }
 
-void Renderer2D::render(glm::mat4 _transform) {
+void Renderer2D::render() {
 	for (std::string shader_name : shaderNames) {
 		ResourceManager::getShader(shader_name).use();
 		ResourceManager::getShader(shader_name).setMatrix4f("projection", projection);
 		
 		for (Renderable2D renderable : nodes[shader_name]) {
-			DrawSprite(renderable.node);
+			if (renderable.node->visible) {
+				DrawSprite(renderable.node);
+				renderable.node->render();
+			}
 		}
 	}
 	shaderNames.clear();
 	nodes.clear();
 }
 
-void Renderer2D::DrawSprite(VisualNode2D* node) {
+void Renderer2D::DrawSprite(VisualNode2D* node, glm::mat4 _transform) {
 	glm::vec2 position = node->sprite->transform.position;
 	glm::vec2 size = { 
 		node->sprite->texture->width * node->sprite->transform.size.x, 
@@ -64,6 +67,7 @@ void Renderer2D::DrawSprite(VisualNode2D* node) {
 	};
 	float rotation = node->sprite->transform.rotation;
 	glm::mat4 model(1.0f);
+	model = _transform * model;
 	model = glm::translate(model, glm::vec3(position, 0.0f));
 	model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
 	model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));

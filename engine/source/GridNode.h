@@ -5,19 +5,53 @@
 #include "Camera.h"
 #include "GameController.h"
 #include "Renderer.h"
+#include <nlohmann/json.hpp>
+#include <map>
+#include "ResourceManager.h"
 
 
 class GridNode : public Node3D {
+	/*private:
+		std::map<unsigned int, std::string> resourceMap = {
+			{ 0, "greenPlane" },
+			{ 1, "greenCube" }
+		};*/
 	public:
 		Grid grid;
+		/*Grid collisionGrid;
+		Grid attributeGrid;*/
 		std::vector<std::vector<Node*>> children;
 		std::set<std::pair<int, int>> visible_children;
 		GridNode() {
 			name = "Grid";
-		};
-		GridNode(Grid& _grid) {
+		}
+		GridNode(Grid& layout_grid) {
 			name = "Grid";
-			grid = _grid;
+			grid = layout_grid;
+			children.resize(grid.height());
+			for (int j = 0; j < grid.height(); j++) {
+				for (int i = 0; i < grid.width(); i++) {
+					children[j].push_back(new Node());
+					visible_children.insert({ i, j });
+				}
+			}
+		}
+		GridNode(std::string node_name, Grid& layout_grid) {
+			name = node_name;
+			grid = layout_grid;
+			children.resize(grid.height());
+			for (int j = 0; j < grid.height(); j++) {
+				for (int i = 0; i < grid.width(); i++) {
+					children[j].push_back(new Node());
+					visible_children.insert({ i, j });
+				}
+			}
+		}
+		/*GridNode(std::string node_name, Grid& layout_grid, Grid& collision_grid, Grid& attribute_grid) {
+			name = node_name;
+			grid = layout_grid;
+			collisionGrid = collision_grid;
+			attributeGrid = collisionGrid;
 			children.resize(grid.height());
 			for (int j = 0; j < grid.height(); j++) {
 				for (int i = 0; i < grid.width(); i++) {
@@ -26,6 +60,7 @@ class GridNode : public Node3D {
 				}
 			}
 		}
+		GridNode(Grid& layout_grid, Grid& collision_grid, Grid& attribute_grid) : GridNode("Grid", layout_grid, collision_grid, attribute_grid) {}
 		GridNode(std::string node_name, Grid& _grid) {
 			name = node_name;
 			grid = _grid;
@@ -36,7 +71,7 @@ class GridNode : public Node3D {
 					visible_children.insert({ i, j });
 				}
 			}
-		}
+		}*/
 		void build() {
 			for (int j = 0; j < grid.height(); j++) {
 				for (int i = 0; i < grid.width(); i++) {
