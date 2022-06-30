@@ -2,36 +2,44 @@
 #define ENEMY_H
 
 #include <vector>
-#include <grafica/gpu_shape.h>
-#include <grafica/easy_shaders.h>
-#include <grafica/scene_graph.h>
+#include <memory>
+#include "Shader.h"
+#include "Model.h"
+#include "Transform.h"
+#include "MeshNode.h"
 
-namespace gr = Grafica;
 
-class Enemy {
+enum direction_t { 
+    RIGHT = 0,
+    UP = 1,
+    LEFT = 2,
+    DOWN = 3,
+    WALK = 0,
+    WAIT = 1 << 2,
+    DOUBLE = 1 << 3,
+    POSITIVE = 0,
+    NEGATIVE = 1 << 1,
+    HORIZONTAL = 0,
+    VERTICAL = 1
+};
+
+class Enemy : public Node3D {
 	private:
-        //gr::GPUShape shape;
-        //gr::ModelViewProjectionShaderProgram pipeline;
-        std::vector<gr::Vector3f> enemyRoute;
-        gr::Vector3f enemyPos;
-        int enemyNextPos = 0;
-        float enemyMovementTime = 0.0f;
+        std::vector<direction_t> path;
+        glm::vec3 position;
+        int nextPos = 0;
+        bool action_ready = true;
+        direction_t direction = RIGHT;
         float x = 0.0f;
         float y = 0.0f;
-        gr::SceneGraphNodePtr node;
-        //gr::ModelViewProjectionShaderProgram& pipeline;
 	public:
-        Enemy(gr::SceneGraphNodePtr _node);
-        Enemy(gr::SceneGraphNodePtr _node, gr::Vector3f pos);
-        Enemy(gr::SceneGraphNodePtr _node, gr::Vector3f pos, std::vector<gr::Vector3f>& route);
-        void update(float delta, const float movement_period);
-        template <typename PipelineT>
-        void render(const PipelineT& pipeline);
-        const gr::Vector3f getPos();
+        ShaderPtr shader;
+        Enemy() = default;
+        Enemy(glm::vec3 pos, std::vector<direction_t>& _path);
+        void update(float dt) override;
+        const glm::vec3 getPos();
         const float getX();
         const float getY();
-        const gr::SceneGraphNodePtr getNode();
-        //const gr::GPUShape getShape();
 };
 
 #endif // !ENEMY_H

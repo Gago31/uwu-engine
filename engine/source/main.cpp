@@ -4,39 +4,130 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <cmath>
-#include <numbers>
-#include <ciso646>
 #include "Grid.h"
-#include <grafica/shape.h>
-#include <grafica/basic_shapes.h>
-#include <grafica/load_shaders.h>
-#include <grafica/easy_shaders.h>
-#include <grafica/gpu_shape.h>
-#include <grafica/transformations.h>
-#include <grafica/scene_graph.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "root_directory.h"
 #include "Enemy.h"
+#include "Model.h"
+#include "Shader.h"
+#include "Sprite.h"
+#include "Renderer2D.h"
+#include "ResourceManager.h"
+#include "InputController.h"
+#include "Player.h"
+#include "GameController.h"
+#include "SceneGraph.h"
+#include "Node3D.h"
+#include "MeshNode.h"
+#include "Renderer.h"
+#include "GridNode.h"
+#include "TextRenderer.h"
+#include "SpriteNode.h"
 
-namespace gr = Grafica;
-namespace tr = Grafica::Transformations;
+
 namespace uwu = UWU;
 
-enum class ProjectionType { Orthographic, Frustum, Perspective };
+GLFWwindow *window;
 
-struct Controller {
-    bool fillPolygon = true;
-    ProjectionType projectionType = ProjectionType::Perspective;
-} controller;
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    } else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        controller.fillPolygon = not controller.fillPolygon;
-    }
+void loadResources() {
+    // Shaders
+    ResourceManager::loadShader(uwu::getPath("assets/shaders/sprite_shader.vs").string().c_str(), uwu::getPath("assets/shaders/sprite_shader.fs").string().c_str(), nullptr, "spriteShader");
+    ResourceManager::loadShader(uwu::getPath("assets/shaders/text_shader.vs").string().c_str(), uwu::getPath("assets/shaders/text_shader.fs").string().c_str(), nullptr, "textShader");
+    //ResourceManager::loadShader(uwu::getPath("assets/shaders/gas_particle_shader.vs").string().c_str(), uwu::getPath("assets/shaders/gas_particle_shader.fs").string().c_str(), nullptr, "particleShader");
+    ResourceManager::loadShader(uwu::getPath("assets/shaders/model_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_shader.fs").string().c_str(), nullptr, "modelShader");
+    //ResourceManager::loadShader(uwu::getPath("assets/shaders/model_lighting_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
+    //ResourceManager::loadShader(uwu::getPath("assets/shaders/mesh_shader.vs").string().c_str(), uwu::getPath("assets/shaders/mesh_shader.fs").string().c_str(), nullptr, "meshShader");
+    
+    // Textures
+    ResourceManager::loadTexture(uwu::getPath("assets/imgs/uwu.png").string().c_str(), true, "uwu");
+    ResourceManager::loadTexture(uwu::getPath("assets/imgs/textbox.png").string().c_str(), true, "textBox");
+    
+    // Models
+    ResourceManager::loadModel(uwu::getPath("assets/models/dcp.obj").string().c_str(), "DCP");
+    ResourceManager::loadModel(uwu::getPath("assets/models/greenCube.obj").string().c_str(), "greenCube");
+    ResourceManager::loadModel(uwu::getPath("assets/models/greenPlane.obj").string().c_str(), "greenPlane");
+    /*for (int i = 0; i < 9; i++) {
+        std::ostringstream ss;
+        ss << "assets/imgs/poison_gas/gas0" << i << ".png";
+        ResourceManager::loadTexture(uwu::getPath(ss.str()).string().c_str(), true, "uwu");
+    }*/
 }
 
+int setUpOpenGL() {
+    // glfw: initialize and configure
+    // ------------------------------
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    // glfw window creation
+    // --------------------
+
+    window = glfwCreateWindow(GameController::SCR_WIDTH, GameController::SCR_HEIGHT, "uwu enyin", NULL, NULL);
+    if (window == NULL) {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+    //glfwSetKeyCallback(window, key_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    //glfwSetKeyCallback(window, InputController::key_callback);
+    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+
+    // glad: load all OpenGL function pointers
+    // ---------------------------------------
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    //stbi_set_flip_vertically_on_load(true);
+
+    glClearColor(0.0f, 0.6f, 1.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glEnable(GL_CULL_FACE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    return 0;
+}
+
+void setInputBindings() {
+    glfwSetJoystickCallback(InputController::joystick_callback);
+    InputController::initialize();
+    InputController::setKeyboardBindings({
+        { "left", GLFW_KEY_LEFT },
+        { "right", GLFW_KEY_RIGHT },
+        { "up", GLFW_KEY_UP },
+        { "down", GLFW_KEY_DOWN },
+        { "a", GLFW_KEY_Z },
+        { "b", GLFW_KEY_X }
+    });
+    InputController::setJoystickBindings({
+        { "left", GLFW_GAMEPAD_BUTTON_DPAD_LEFT },
+        { "right", GLFW_GAMEPAD_BUTTON_DPAD_RIGHT },
+        { "up", GLFW_GAMEPAD_BUTTON_DPAD_UP },
+        { "down", GLFW_GAMEPAD_BUTTON_DPAD_DOWN },
+        { "a", GLFW_GAMEPAD_BUTTON_A },
+        { "b", GLFW_GAMEPAD_BUTTON_B }
+    });
+    /*InputController::setAxisBindings({
+        { "left", { GLFW_GAMEPAD_AXIS_LEFT_X, -1 } },
+        { "right", { GLFW_GAMEPAD_AXIS_LEFT_X, 1 } },
+        { "up", { GLFW_GAMEPAD_AXIS_LEFT_Y, 1 } },
+        { "down", { GLFW_GAMEPAD_AXIS_LEFT_Y, -1 } },
+    });*/
+}
 
 int main() {
     int w = 10;
@@ -53,178 +144,126 @@ int main() {
         1, 1, 0, 1, 0, 1, 0, 0, 0, 1,
         1, 1, 0, 1, 0, 0, 1, 0, 0, 1,
         1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
-        });
+    });
 
-    for (int j = 0; j < h; j++) {
-        for (int i = 0; i < w; i++) {
-            std::cout << g.coord(i, j) << ' ';
-        }
-        std::cout << std::endl;
-    }
+    g.print();
 
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    if (setUpOpenGL()) return -1;
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+    loadResources();
 
-    // glfw window creation
-    // --------------------
-    constexpr unsigned int SCR_WIDTH = 1280;
-    constexpr unsigned int SCR_HEIGHT = 720;
-    constexpr float SCREEN_RATIO = float(SCR_WIDTH) / float(SCR_HEIGHT);
+    GameController::initialize();
+    setInputBindings();
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "uwu enyin", NULL, NULL);
-    if (window == NULL) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, key_callback);
-    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    Sprite gpuwu(std::make_shared<Texture2D>(ResourceManager::getTexture("uwu")));
+    gpuwu.transform.translate(16.0f, 620.0f);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
+    Sprite textBox(std::make_shared<Texture2D>(ResourceManager::getTexture("textBox")));
+    textBox.transform.translate(40.0f, 500.0f);
 
-    gr::Matrix4f projection;
-    projection = tr::perspective(60, SCREEN_RATIO, 0.1, 100);
+    Renderer2D::initialize(GameController::SCR_WIDTH, GameController::SCR_HEIGHT);
 
-    gr::ModelViewProjectionShaderProgram pipeline;
-    gr::TextureTransformShaderProgram guiPipeline;
-    gr::GPUShape gpuAxis = gr::toGPUShape(pipeline, gr::createAxis(7));
-    gr::GPUShape plane = gr::toGPUShape(pipeline, gr::createColorQuad(0.1f, 0.5f, 0.1f));
-    gr::GPUShape gpuGreenCube = gr::toGPUShape(pipeline, gr::createColorCube(0, 1, 0));
-    gr::GPUShape gpuRedCube = gr::toGPUShape(pipeline, gr::createColorCube(1, 0, 0));
-    gr::GPUShape gpuwu = gr::toGPUShape(guiPipeline, gr::createTextureQuad());
-    gpuwu.texture = gr::textureSimpleSetup(
-        uwu::getPath("assets/imgs/uwu.png"), GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST);
+    TextRenderer textRenderer;
+    textRenderer.init();
 
-    glClearColor(0.0f, 0.6f, 1.0f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //std::vector<direction_t> enemyPath = { LEFT, UP, UP, RIGHT, RIGHT, DOWN, DOWN, LEFT };
+    std::vector<direction_t> enemyPath = { LEFT, (direction_t)(WAIT | UP), UP, UP, (direction_t)(WAIT | RIGHT), RIGHT, RIGHT, (direction_t)(WAIT | DOWN), DOWN, DOWN, (direction_t)(WAIT | LEFT), LEFT };
+    //std::vector<direction_t> enemyPath = { (direction_t) (WAIT | UP), (direction_t) (DOUBLE | UP), (direction_t)(WAIT | RIGHT), (direction_t)(DOUBLE | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(DOUBLE | DOWN), (direction_t)(WAIT | LEFT), (direction_t)(DOUBLE | LEFT) };
+    Enemy *enemy = new Enemy({2, 6, 0}, enemyPath);
+    MeshNode *dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), "modelShader");
+    dcpNode->transform.scale(0.2f);
+    dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
+    enemy->addChild(dcpNode);
+
+
+    /*std::vector<direction_t> enemyPath2 = { (direction_t)(WAIT | UP), (direction_t)(WAIT | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(WAIT | LEFT) };
+    Enemy* enemy2 = new Enemy({ 5, 5, 0 }, enemyPath2);
+    MeshNode* dcpNode2 = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), std::make_shared<Shader>(ResourceManager::getShader("modelShader")));
+    dcpNode2->transform.scale(0.2f);
+    dcpNode2->transform.rotateX(glm::pi<float>() * 0.5);
+    enemy2->addChild(dcpNode2);*/
+
+    Player *player = new Player(0.0f, 3.0f, 0.25f, 90);
+    player->camera->setAspectRatio(GameController::SCREEN_RATIO);
+    player->camera->makeCurrent();
 
     float t0 = glfwGetTime(), t1, dt;
-    float cameraTheta = std::numbers::pi / 2;
 
-    gr::Vector3f playerPos(-5.0f, -1.0f, 0.25f);
-    
-    std::vector<gr::Vector3f> enemyRoute = {
-        { -3.0f, 2.0f, 0.25f },
-        { -4.0f, 2.0f, 0.25f },
-        { -4.0f, 3.0f, 0.25f },
-        { -4.0f, 4.0f, 0.25f },
-        { -3.0f, 4.0f, 0.25f },
-        { -2.0f, 4.0f, 0.25f },
-        { -2.0f, 3.0f, 0.25f },
-        { -2.0f, 2.0f, 0.25f }
-    };
-    gr::GPUShapePtr redCube = std::make_shared<gr::GPUShape>(gpuRedCube);
-    gr::SceneGraphNode enemyNode("Enemy", tr::translate(0,0,0));
-    enemyNode.childs.push_back(std::make_shared<gr::SceneGraphNode>(gr::SceneGraphNode("Shape", tr::uniformScale(0.5f), redCube)));
-    Enemy enemy(std::make_shared<gr::SceneGraphNode>(enemyNode), enemyRoute[0], enemyRoute);
 
-    float MOVEMENT_PERIOD = 1.0f;
+    // ----------- Build SceneTree -------------------------
+
+    Scene scene;
+    GameController::currentScene = &scene;
+    Node *root = &scene.root;
+    GridNode *gridNode = new GridNode(g);
+    gridNode->build();
+    gridNode->setCollision();
+    root->addChild(player);
+    root->addChild(gridNode);
+    root->addChild(enemy);
+    root->addChild(new SpriteNode("textbox", std::make_shared<Sprite>(textBox), "spriteShader"));
+    root->addChild(new SpriteNode("gpuwu", std::make_shared<Sprite>(gpuwu), "spriteShader"));
+    //GameController::currentScene->root.addChild(enemy2);
+
 
     while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-
-        if (controller.fillPolygon)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        else
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+        // ----------- time -----------
         t1 = glfwGetTime();
         dt = t1 - t0;
         t0 = t1;
 
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-            cameraTheta -= 2 * dt;
+        // ----------- show fps ------------
+        bool show_fps = false;
+        if (show_fps) {
+            std::stringstream ss;
+            ss << "uwu enyin [" << (int) (1.0f / dt) << "fps" << (int) (1000 * dt) << " ms]";
+            glfwSetWindowTitle(window, ss.str().c_str());
         }
 
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-            cameraTheta += 2 * dt;
-        }
+        // ----------- handle input ---------
+        glfwPollEvents();
+        InputController::pollJoysticks();
+        InputController::pollKeys(window);
 
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-            playerPos[0] += 2 * std::sin(cameraTheta) * dt;
-            playerPos[1] += 2 * std::cos(cameraTheta) * dt;
-        }
+        // ----------------- update -------------------------
 
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-            playerPos[0] -= 2 * std::sin(cameraTheta) * dt;
-            playerPos[1] -= 2 * std::cos(cameraTheta) * dt;
-        }
+        GameController::update(dt);
+        scene.update(dt);
 
-        gr::Vector3f const viewPos = playerPos;
-        gr::Vector3f const eye(
-            playerPos[0] + std::sin(cameraTheta), 
-            playerPos[1] + std::cos(cameraTheta),
-            playerPos[2]);
-        gr::Vector3f const at(0, 0, 1);
+        // ----------------- draw ---------------------------
 
-        gr::Matrix4f view = tr::lookAt(viewPos, eye, at);
+        glEnable(GL_DEPTH_TEST);
 
-        glUseProgram(pipeline.shaderProgram);
-        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "view"), 1, GL_FALSE, view.data());
-
-
-        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_FALSE, projection.data());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (GameController::fillPolygon)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        else
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         
-        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_FALSE, tr::identity().data());
-        pipeline.drawCall(gpuAxis, GL_LINES);
+        // 3D
 
-        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_FALSE,
-            ((gr::Matrix4f) (tr::translate(0.0f, 0.0f, 0.0f) * tr::uniformScale(20))).data());
-        pipeline.drawCall(plane);
+        glm::mat4 player_view = player->camera->getView();
+        glm::mat4 player_projection = player->camera->getProjection();
 
-        // walls
-        for (int i = 0; i < g.width(); i++) {
-            for (int j = 0; j < g.height(); j++) {
-                if (g.coord(i, j) == 1) {
-                    glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_FALSE, tr::translate(i - g.width() / 2.0f, -j + g.height() / 2.0f, 0.5f).data());
-                    pipeline.drawCall(gpuGreenCube);
-                }
-            }
-        }
-
-        // enemy
-        enemy.update(dt, MOVEMENT_PERIOD);
+        Renderer::projection = player_projection;
+        Renderer::view = player_view;
         
-        //enemy.render(pipeline);
-        gr::drawSceneGraphNode(enemy.getNode(), pipeline, "model");
+        scene.render();
+
+        Renderer::render();
 
         // GUI
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glUseProgram(guiPipeline.shaderProgram);
-
-        gr::Matrix4f guiTransform = tr::translate(-0.85f, -0.8f, 0.0f) * tr::scale(0.2f, 0.2f * SCREEN_RATIO, 1);
-
-        glUniformMatrix4fv(glGetUniformLocation(guiPipeline.shaderProgram, "transform"), 1, GL_FALSE, guiTransform.data());
-        guiPipeline.drawCall(gpuwu);
+        //glClear(GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
+        Renderer2D::render();
+        textRenderer.renderText(std::make_shared<Shader>(ResourceManager::getShader("textShader")), "Esto es un texto.", 70.0f, 164.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
         glfwSwapBuffers(window);
-
-
     }
 
-    gpuAxis.clear();
-    plane.clear();
-    gpuGreenCube.clear();
-    gpuRedCube.clear();
-    gpuwu.clear();
+    ResourceManager::clear();
+    Renderer2D::clear();
 
     glfwTerminate();
     return 0;

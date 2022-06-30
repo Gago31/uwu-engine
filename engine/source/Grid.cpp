@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 #include "Grid.h"
 
 Grid::Grid() {
@@ -34,9 +35,25 @@ int Grid::coord(int x, int y) const {
 	return grid[y * w + x];
 }
 
+int Grid::coord(glm::vec2 pos) const {
+	if (pos.x < 0 || w < pos.x || pos.y < 0 || h < pos.y) {
+		return -1;
+	}
+	return grid[pos.y * w + pos.x];
+}
+
 void Grid::set_coord(int x, int y, int value) {
 	if (x < 0 || w < x || y < 0 || h < y) {
 		return;
 	}
 	grid[y * w + x] = value;
+}
+
+void Grid::print() {
+	for (int j = 0; j < h; j++) {
+		for (int i = 0; i < w; i++) {
+			std::cout << coord(i, j) << ' ';
+		}
+		std::cout << std::endl;
+	}
 }
