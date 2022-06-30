@@ -34,12 +34,12 @@ GLFWwindow *window;
 
 void loadResources() {
     // Shaders
-    ResourceManager::loadShader(uwu::getPath("assets/shaders/sprite_shader.vs").string().c_str(), uwu::getPath("assets/shaders/sprite_shader.fs").string().c_str(), nullptr, "spriteShader");
-    ResourceManager::loadShader(uwu::getPath("assets/shaders/text_shader.vs").string().c_str(), uwu::getPath("assets/shaders/text_shader.fs").string().c_str(), nullptr, "textShader");
-    //ResourceManager::loadShader(uwu::getPath("assets/shaders/gas_particle_shader.vs").string().c_str(), uwu::getPath("assets/shaders/gas_particle_shader.fs").string().c_str(), nullptr, "particleShader");
-    ResourceManager::loadShader(uwu::getPath("assets/shaders/model_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_shader.fs").string().c_str(), nullptr, "modelShader");
-    //ResourceManager::loadShader(uwu::getPath("assets/shaders/model_lighting_shader.vs").string().c_str(), uwu::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
-    //ResourceManager::loadShader(uwu::getPath("assets/shaders/mesh_shader.vs").string().c_str(), uwu::getPath("assets/shaders/mesh_shader.fs").string().c_str(), nullptr, "meshShader");
+    ResourceManager::loadShader(uwu::getPath("assets/shaders/sprite_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/sprite_shader.fs").string().c_str(), nullptr, "spriteShader");
+    ResourceManager::loadShader(uwu::getPath("assets/shaders/text_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/text_shader.fs").string().c_str(), nullptr, "textShader");
+    //ResourceManager::loadShader(uwu::getPath("assets/shaders/gas_particle_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/gas_particle_shader.fs").string().c_str(), nullptr, "particleShader");
+    ResourceManager::loadShader(uwu::getPath("assets/shaders/model_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/model_shader.fs").string().c_str(), nullptr, "modelShader");
+    //ResourceManager::loadShader(uwu::getPath("assets/shaders/model_lighting_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
+    //ResourceManager::loadShader(uwu::getPath("assets/shaders/mesh_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/mesh_shader.fs").string().c_str(), nullptr, "meshShader");
     
     // Textures
     ResourceManager::loadTexture(uwu::getPath("assets/imgs/uwu.png").string().c_str(), true, "uwu");
