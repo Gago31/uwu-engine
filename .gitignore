@@ -34,3 +34,5 @@
 
 # visual studio
 *.vs
+
+!*shaders/*.vs
