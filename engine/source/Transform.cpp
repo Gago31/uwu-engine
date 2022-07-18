@@ -32,16 +32,19 @@ glm::vec3 Transform::translate(float x, float y, float z) {
 
 glm::mat4 Transform::rotateX(float t) {
 	matrix = glm::rotate(matrix, t, { 1.0f, 0.0f, 0.0f });
+	rotation = glm::rotate(rotation, t, { 1.0f, 0.0f, 0.0f });
 	return matrix;
 }
 
 glm::mat4 Transform::rotateY(float t) {
 	matrix = glm::rotate(matrix, t, { 0.0f, 1.0f, 0.0f });
+	rotation = glm::rotate(rotation, t, { 0.0f, 1.0f, 0.0f });
 	return matrix;
 }
 
 glm::mat4 Transform::rotateZ(float t) {
 	matrix = glm::rotate(matrix, t, { 0.0f, 0.0f, 1.0f });
+	rotation = glm::rotate(rotation, t, { 0.0f, 0.0f, 1.0f });
 	return matrix;
 }
 
@@ -80,6 +83,36 @@ void Transform::resetRotation() {
 
 void Transform::resetScale() {
 	size = { 1.0f,1.0f,1.0f };
+}
+
+void from_json(const json& j, Transform& transform) {
+	transform.position = { j["position"][0], j["position"][1], j["position"][2] };
+	transform.rotation[0][0] = j["rotation"][0][0]; transform.rotation[1][0] = j["rotation"][1][0]; transform.rotation[2][0] = j["rotation"][2][0]; transform.rotation[3][0] = j["rotation"][3][0];
+	transform.rotation[0][1] = j["rotation"][0][1]; transform.rotation[1][1] = j["rotation"][1][1]; transform.rotation[2][1] = j["rotation"][2][1]; transform.rotation[3][1] = j["rotation"][3][1];
+	transform.rotation[0][2] = j["rotation"][0][2]; transform.rotation[1][2] = j["rotation"][1][2]; transform.rotation[2][2] = j["rotation"][2][2]; transform.rotation[3][2] = j["rotation"][3][2];
+	transform.rotation[0][3] = j["rotation"][0][3]; transform.rotation[1][3] = j["rotation"][1][3]; transform.rotation[2][3] = j["rotation"][2][3]; transform.rotation[3][3] = j["rotation"][3][3];
+	transform.size= { j["size"][0], j["size"][1], j["size"][2] };
+	transform.matrix[0][0] = j["matrix"][0][0]; transform.matrix[1][0] = j["matrix"][1][0]; transform.matrix[2][0] = j["matrix"][2][0]; transform.matrix[3][0] = j["matrix"][3][0];
+	transform.matrix[1][0] = j["matrix"][0][1]; transform.matrix[1][1] = j["matrix"][1][1]; transform.matrix[2][1] = j["matrix"][2][1]; transform.matrix[3][1] = j["matrix"][3][1];
+	transform.matrix[2][0] = j["matrix"][0][2]; transform.matrix[1][2] = j["matrix"][1][2]; transform.matrix[2][2] = j["matrix"][2][2]; transform.matrix[3][2] = j["matrix"][3][2];
+	transform.matrix[3][0] = j["matrix"][0][3]; transform.matrix[1][3] = j["matrix"][1][3]; transform.matrix[2][3] = j["matrix"][2][3]; transform.matrix[3][3] = j["matrix"][3][3];
+}
+
+void to_json(json& j, const Transform& transform) {
+	j["position"] = { transform.position.x, transform.position.y , transform.position.z };
+	j["rotation"] = {
+		{ transform.rotation[0][0], transform.rotation[0][1], transform.rotation[0][2], transform.rotation[0][3] },
+		{ transform.rotation[1][0], transform.rotation[1][1], transform.rotation[1][2], transform.rotation[1][3] },
+		{ transform.rotation[2][0], transform.rotation[2][1], transform.rotation[2][2], transform.rotation[2][3] },
+		{ transform.rotation[3][0], transform.rotation[3][1], transform.rotation[3][2], transform.rotation[3][3] },
+	};
+	j["size"] = { transform.size.x, transform.size.y , transform.size.z };
+	j["matrix"] = {
+		{ transform.matrix[0][0], transform.matrix[0][1], transform.matrix[0][2], transform.matrix[0][3] },
+		{ transform.matrix[1][0], transform.matrix[1][1], transform.matrix[1][2], transform.matrix[1][3] },
+		{ transform.matrix[2][0], transform.matrix[2][1], transform.matrix[2][2], transform.matrix[2][3] },
+		{ transform.matrix[3][0], transform.matrix[3][1], transform.matrix[3][2], transform.matrix[3][3] },
+	};
 }
 
 //==================== Transform2D =======================
@@ -152,4 +185,26 @@ void Transform2D::resetRotation() {
 void Transform2D::resetScale() {
 	//matrix = glm::scale(matrix, glm::vec3(1.0f/size.x, 1.0f/size.y, 1.0f));
 	size = { 1.0f, 1.0f };
+}
+
+void from_json(const json& j, Transform2D& transform) {
+	transform.position = { j["position"][0], j["position"][1] };
+	transform.rotation = j["rotation"];
+	transform.size = { j["size"][0], j["size"][1] };
+	transform.matrix[0][0] = j["matrix"][0][0]; transform.matrix[1][0] = j["matrix"][1][0]; transform.matrix[2][0] = j["matrix"][2][0]; transform.matrix[3][0] = j["matrix"][3][0];
+	transform.matrix[0][1] = j["matrix"][0][1]; transform.matrix[1][1] = j["matrix"][1][1]; transform.matrix[2][1] = j["matrix"][2][1]; transform.matrix[3][1] = j["matrix"][3][1];
+	transform.matrix[0][2] = j["matrix"][0][2]; transform.matrix[1][2] = j["matrix"][1][2]; transform.matrix[2][2] = j["matrix"][2][2]; transform.matrix[3][2] = j["matrix"][3][2];
+	transform.matrix[0][3] = j["matrix"][0][3]; transform.matrix[1][3] = j["matrix"][1][3]; transform.matrix[2][3] = j["matrix"][2][3]; transform.matrix[3][3] = j["matrix"][3][3];
+}
+
+void to_json(json& j, const Transform2D& transform) {
+	j["position"] = { transform.position.x, transform.position.y };
+	j["rotation"] = transform.rotation;
+	j["size"] = { transform.size.x, transform.size.y };
+	j["matrix"] = {
+		{ transform.matrix[0][0], transform.matrix[1][0], transform.matrix[2][0], transform.matrix[3][0] },
+		{ transform.matrix[0][1], transform.matrix[1][1], transform.matrix[2][1], transform.matrix[3][1] },
+		{ transform.matrix[0][2], transform.matrix[1][2], transform.matrix[2][2], transform.matrix[3][2] },
+		{ transform.matrix[0][3], transform.matrix[1][3], transform.matrix[2][3], transform.matrix[3][3] },
+	};
 }

@@ -1,72 +1,6 @@
 #include "Shader.h"
 
 
-Shader::Shader(/*const std::filesystem::path vertexPath, const std::filesystem::path fragmentPath*/) {
-	/*std::string vertexCode;
-	std::string fragmentCode;
-	std::ifstream vShaderFile;
-	std::ifstream fShaderFile;
-
-	vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-	try {
-		vShaderFile.open(vertexPath.string());
-		fShaderFile.open(fragmentPath.string());
-		std::stringstream vShaderStream, fShaderStream;
-
-		vShaderStream << vShaderFile.rdbuf();
-		fShaderStream << fShaderFile.rdbuf();
-
-		vShaderFile.close();
-		fShaderFile.close();
-
-		vertexCode = vShaderStream.str();
-		fragmentCode = fShaderStream.str();
-	} catch (std::ifstream::failure& e) {
-		std::cout << "ERROR - Couldn't read shader" << std::endl;
-	}
-	const char* vShaderCode = vertexCode.c_str();
-	const char* fShaderCode = fragmentCode.c_str();
-
-	unsigned int vertex, fragment;
-	int success;
-	char infoLog[1024];
-
-	vertex = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex, 1, &vShaderCode, NULL);
-	glCompileShader(vertex);
-	glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertex, 1024, NULL, infoLog);
-		std::cout << "ERROR - Shader compilation failed\n" << infoLog << std::endl;
-	}
-
-	fragment = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment, 1, &fShaderCode, NULL);
-	glCompileShader(fragment);
-	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragment, 1024, NULL, infoLog);
-		std::cout << "ERROR - Shader compilation failed\n" << infoLog << std::endl;
-	}
-
-	ID = glCreateProgram();
-	glAttachShader(ID, vertex);
-	glAttachShader(ID, fragment);
-	glLinkProgram(ID);
-
-	glGetProgramiv(ID, GL_LINK_STATUS, &success);
-
-	if (!success) {
-		glGetShaderInfoLog(fragment, 1024, NULL, infoLog);
-		std::cout << "ERROR - Shader program linking failed\n" << infoLog << std::endl;
-	}
-
-	glDeleteShader(vertex);
-	glDeleteShader(fragment);*/
-}
-
 void Shader::use() {
 	glUseProgram(this->ID);
 }
@@ -170,4 +104,18 @@ void Shader::setVector4f(const std::string& name, float x, float y, float z, flo
 
 void Shader::setVector4f(const std::string& name, const glm::vec4& value){
 	glUniform4f(glGetUniformLocation(this->ID, name.c_str()), value.x, value.y, value.z, value.w);
+}
+
+void to_json(json& j, const Shader& shader) {
+	j = {
+		{ "vertexPath", shader.vertexPath },
+		{ "fragmentPath", shader.fragmentPath },
+		{ "geometryPath", shader.geometryPath }
+	};
+}
+
+void from_json(const json& j, Shader& shader) {
+	shader.vertexPath = j["vertexPath"];
+	shader.fragmentPath = j["fragmentPath"];
+	shader.geometryPath = j["geometryPath"];
 }

@@ -7,6 +7,7 @@ Texture2D::Texture2D() : width(0), height(0), InternalFormat(GL_RGB), ImageForma
 }
 
 void Texture2D::Generate(unsigned int w, unsigned int h, unsigned char* data, bool model_texture) {
+	isModelTexture = model_texture;
 	this->width = w;
 	this->height = h;
 	glBindTexture(GL_TEXTURE_2D, this->ID);
@@ -25,4 +26,13 @@ void Texture2D::Generate(unsigned int w, unsigned int h, unsigned char* data, bo
 
 void Texture2D::Bind() const {
 	glBindTexture(GL_TEXTURE_2D, this->ID);
+}
+
+
+void to_json(json& j, const Texture2D& texture) {
+	j["path"] = texture.texturePath;
+}
+
+void from_json(const json& j, Texture2D& texture) {
+	texture.texturePath = j.at("modelPath");
 }

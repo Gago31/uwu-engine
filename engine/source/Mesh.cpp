@@ -68,3 +68,31 @@ void Mesh::Draw(ShaderPtr shader) {
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
+
+//void from_json(const json& j, Vertex& v) {
+//
+//}
+//
+//void to_json(json& j, const Vertex& v) {
+//	j["position"] = { v.Position.x, v.Position.y, v.Position.z };
+//	j["normals"] = { v.Normal.x, v.Normal.y, v.Normal.z };
+//	j["texCoords"]
+//}
+//
+//
+//void from_json(const json& j, Texture& t) {
+//
+//}
+//
+//void to_json(json& j, const Texture& t) {
+//
+//}
+//
+//
+//void from_json(const json& j, Mesh& m) {
+//
+//}
+//
+//void to_json(json& j, const Mesh& m) {
+//
+//}

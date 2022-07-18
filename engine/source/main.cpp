@@ -1,136 +1,71 @@
 #include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <string>
 #include <memory>
 #include <vector>
 #include "Grid.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include "root_directory.h"
 #include "Enemy.h"
-#include "Model.h"
-#include "Shader.h"
 #include "Sprite.h"
-#include "Renderer2D.h"
-#include "ResourceManager.h"
-#include "InputController.h"
 #include "Player.h"
-#include "GameController.h"
 #include "SceneGraph.h"
 #include "Node3D.h"
 #include "MeshNode.h"
-#include "Renderer.h"
 #include "GridNode.h"
-#include "TextRenderer.h"
 #include "SpriteNode.h"
 #include "TextBox.h"
+#include "SoundEmitter.h"
+#include "SoundEmitter3D.h"
 
-
-namespace uwu = UWU;
-
-GLFWwindow *window;
+#include "uwu.h"
 
 
 void loadResources() {
     // Shaders
-    ResourceManager::loadShader(uwu::getPath("assets/shaders/sprite_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/sprite_shader.fs").string().c_str(), nullptr, "spriteShader");
-    ResourceManager::loadShader(uwu::getPath("assets/shaders/text_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/text_shader.fs").string().c_str(), nullptr, "textShader");
-    //ResourceManager::loadShader(uwu::getPath("assets/shaders/gas_particle_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/gas_particle_shader.fs").string().c_str(), nullptr, "particleShader");
-    ResourceManager::loadShader(uwu::getPath("assets/shaders/model_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/model_shader.fs").string().c_str(), nullptr, "modelShader");
-    //ResourceManager::loadShader(uwu::getPath("assets/shaders/model_lighting_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/model_lighting_shader.fs").string().c_str(), nullptr, "modelShader");
-    //ResourceManager::loadShader(uwu::getPath("assets/shaders/mesh_shader.vsh").string().c_str(), uwu::getPath("assets/shaders/mesh_shader.fs").string().c_str(), nullptr, "meshShader");
+    uwuLoadShader("assets/shaders/sprite_shader.vsh", "assets/shaders/sprite_shader.fs", nullptr, "spriteShader");
+    uwuLoadShader("assets/shaders/text_shader.vsh", "assets/shaders/text_shader.fs", nullptr, "textShader");
+    uwuLoadShader("assets/shaders/model_shader.vsh", "assets/shaders/model_shader.fs", nullptr, "modelShader");
+    uwuLoadShader("assets/shaders/model_lighting_shader.vsh", "assets/shaders/model_lighting_shader.fs", nullptr, "modelShaderL");
     
     // Textures
-    ResourceManager::loadTexture(uwu::getPath("assets/imgs/uwu.png").string().c_str(), true, "uwu");
-    ResourceManager::loadTexture(uwu::getPath("assets/imgs/textbox.png").string().c_str(), true, "textBox");
+    uwuLoadTexture("assets/imgs/uwu.png", true, "uwu");
+    uwuLoadTexture("assets/imgs/textbox.png", true, "textBox");
     
     // Models
-    ResourceManager::loadModel(uwu::getPath("assets/models/dcp.obj").string().c_str(), "DCP");
-    ResourceManager::loadModel(uwu::getPath("assets/models/greenCube.obj").string().c_str(), "greenCube");
-    ResourceManager::loadModel(uwu::getPath("assets/models/greenPlane.obj").string().c_str(), "greenPlane");
-    /*for (int i = 0; i < 9; i++) {
-        std::ostringstream ss;
-        ss << "assets/imgs/poison_gas/gas0" << i << ".png";
-        ResourceManager::loadTexture(uwu::getPath(ss.str()).string().c_str(), true, "uwu");
-    }*/
-}
+    uwuLoadModel("assets/models/dcp.obj", "DCP");
+    uwuLoadModel("assets/models/greenCube.obj", "greenCube");
+    uwuLoadModel("assets/models/greenPlane.obj", "greenPlane");
 
-int setUpOpenGL() {
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    // glfw window creation
-    // --------------------
-
-    window = glfwCreateWindow(GameController::SCR_WIDTH, GameController::SCR_HEIGHT, "uwu enyin", NULL, NULL);
-    if (window == NULL) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    //glfwSetKeyCallback(window, key_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-    //glfwSetKeyCallback(window, InputController::key_callback);
-    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
-
-    //stbi_set_flip_vertically_on_load(true);
-
-    glClearColor(0.0f, 0.6f, 1.0f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glEnable(GL_CULL_FACE);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    return 0;
+    // Sounds
+    uwuLoadSoundWAV("/assets/music/moths_bgm_mono.wav", "bgm");
+    uwuLoadSoundWAV("/assets/sounds/buenos_dias.wav", "buenosDias");
+    uwuLoadSoundWAV("/assets/sounds/te_deseo_buen_dia.wav", "muyBuenDia");
 }
 
 void setInputBindings() {
-    glfwSetJoystickCallback(InputController::joystick_callback);
-    InputController::initialize();
-    InputController::setKeyboardBindings({
-        { "left", GLFW_KEY_LEFT },
-        { "right", GLFW_KEY_RIGHT },
-        { "up", GLFW_KEY_UP },
-        { "down", GLFW_KEY_DOWN },
-        { "a", GLFW_KEY_Z },
-        { "b", GLFW_KEY_X }
+    uwu::setKeyboardBindings({
+        { "left",  KEYBOARD_KEY_LEFT },
+        { "right", KEYBOARD_KEY_RIGHT },
+        { "up",    KEYBOARD_KEY_UP },
+        { "down",  KEYBOARD_KEY_DOWN },
+        { "a",     KEYBOARD_KEY_Z },
+        { "b",     KEYBOARD_KEY_X }
     });
-    InputController::setJoystickBindings({
-        { "left", GLFW_GAMEPAD_BUTTON_DPAD_LEFT },
-        { "right", GLFW_GAMEPAD_BUTTON_DPAD_RIGHT },
-        { "up", GLFW_GAMEPAD_BUTTON_DPAD_UP },
-        { "down", GLFW_GAMEPAD_BUTTON_DPAD_DOWN },
-        { "a", GLFW_GAMEPAD_BUTTON_A },
-        { "b", GLFW_GAMEPAD_BUTTON_B }
+    uwu::setJoystickBindings({
+        { "left",  DPAD_LEFT },
+        { "right", DPAD_RIGHT },
+        { "up",    DPAD_UP },
+        { "down",  DPAD_DOWN },
+        { "a",     XBOX_A },
+        { "b",     XBOX_B }
     });
-    /*InputController::setAxisBindings({
-        { "left", { GLFW_GAMEPAD_AXIS_LEFT_X, -1 } },
-        { "right", { GLFW_GAMEPAD_AXIS_LEFT_X, 1 } },
-        { "up", { GLFW_GAMEPAD_AXIS_LEFT_Y, 1 } },
-        { "down", { GLFW_GAMEPAD_AXIS_LEFT_Y, -1 } },
-    });*/
+    uwu::setAxisBindings({
+        { "left",  LEFT_STICK_LEFT },
+        { "right", LEFT_STICK_RIGHT },
+        { "up",    LEFT_STICK_UP },
+        { "down",  LEFT_STICK_DOWN },
+    });
 }
 
-int main() {
+Scene buildScene() {
     int w = 10;
     int h = 10;
 
@@ -149,128 +84,76 @@ int main() {
 
     g.print();
 
-    if (setUpOpenGL()) return -1;
-
-    loadResources();
-
-    GameController::initialize();
-    setInputBindings();
-
-    Sprite gpuwu(std::make_shared<Texture2D>(ResourceManager::getTexture("uwu")));
+    Sprite gpuwu("uwu");
     gpuwu.transform.translate(16.0f, 620.0f);
 
-    Sprite textBox(std::make_shared<Texture2D>(ResourceManager::getTexture("textBox")));
+    Sprite textBox("textBox");
     textBox.transform.translate(40.0f, 500.0f);
 
-    Renderer2D::initialize(GameController::SCR_WIDTH, GameController::SCR_HEIGHT);
-
-    TextRenderer textRenderer;
-    textRenderer.init("assets/fonts/DelaGothicOne-Regular.ttf");
-
-    //std::vector<direction_t> enemyPath = { LEFT, UP, UP, RIGHT, RIGHT, DOWN, DOWN, LEFT };
-    std::vector<direction_t> enemyPath = { LEFT, (direction_t)(WAIT | UP), UP, UP, (direction_t)(WAIT | RIGHT), RIGHT, RIGHT, (direction_t)(WAIT | DOWN), DOWN, DOWN, (direction_t)(WAIT | LEFT), LEFT };
-    //std::vector<direction_t> enemyPath = { (direction_t) (WAIT | UP), (direction_t) (DOUBLE | UP), (direction_t)(WAIT | RIGHT), (direction_t)(DOUBLE | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(DOUBLE | DOWN), (direction_t)(WAIT | LEFT), (direction_t)(DOUBLE | LEFT) };
-    Enemy *enemy = new Enemy({2, 6, 0}, enemyPath);
-    MeshNode *dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), "modelShader");
+    //std::vector<int> enemyPath = { LEFT, UP, UP, RIGHT, RIGHT, DOWN, DOWN, LEFT };
+    std::vector<int> enemyPath = { LEFT, WAIT | UP, UP, UP, WAIT | RIGHT, RIGHT, RIGHT, WAIT | DOWN, DOWN, DOWN, WAIT | LEFT, LEFT };
+    //std::vector<int> enemyPath = { WAIT | UP, DOUBLE | UP, WAIT | RIGHT, DOUBLE | RIGHT, WAIT | DOWN, DOUBLE | DOWN, WAIT | LEFT, DOUBLE | LEFT };
+    Enemy* enemy = new Enemy({ 2, 6, 0 }, enemyPath);
+    MeshNode* dcpNode = new MeshNode("DCP", "modelShader");
     dcpNode->transform.scale(0.2f);
     dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
     enemy->addChild(dcpNode);
 
-
-    /*std::vector<direction_t> enemyPath2 = { (direction_t)(WAIT | UP), (direction_t)(WAIT | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(WAIT | LEFT) };
+    /*std::vector<direction_t> enemyPath2 = { WAIT | UP, WAIT | RIGHT, WAIT | DOWN, WAIT | LEFT };
     Enemy* enemy2 = new Enemy({ 5, 5, 0 }, enemyPath2);
-    MeshNode* dcpNode2 = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), std::make_shared<Shader>(ResourceManager::getShader("modelShader")));
+    MeshNode* dcpNode2 = new MeshNode("DCP", "modelShader");
     dcpNode2->transform.scale(0.2f);
     dcpNode2->transform.rotateX(glm::pi<float>() * 0.5);
     enemy2->addChild(dcpNode2);*/
 
-    Player *player = new Player(0.0f, 3.0f, 0.25f, 90);
+    Player* player = new Player(0.0f, 3.0f, 0.25f, 90);
     player->camera->setAspectRatio(GameController::SCREEN_RATIO);
     player->camera->makeCurrent();
 
-    float t0 = glfwGetTime(), t1, dt;
-
-
-    // ----------- Build SceneTree -------------------------
-
     Scene scene;
-    GameController::currentScene = &scene;
-    Node *root = &scene.root;
-    GridNode *gridNode = new GridNode(g);
-    gridNode->build();
-    gridNode->setCollision();
+
+    Node* root = scene.root;
+    GridNode* gridNode = new GridNode(g);
     root->addChild(player);
     root->addChild(gridNode);
     root->addChild(enemy);
-    //root->addChild(new SpriteNode("textbox", std::make_shared<Sprite>(textBox), "spriteShader"));
-    TextBox *textBoxNode = new TextBox(std::make_shared<Sprite>(textBox), "assets/fonts/DelaGothicOne-Regular.ttf");
-    textBoxNode->text = "Esto es un texto.";
+    TextBox* textBoxNode = new TextBox(textBox, "assets/fonts/DelaGothicOne-Regular.ttf");
+    textBoxNode->text = "Esto no es un texto en espagnol.";
+    //textBoxNode->text = "Esto es un texto en español.";
     textBoxNode->transform.translate(70.0f, 164.0f);
     textBoxNode->hide();
     root->addChild(textBoxNode);
-    root->addChild(new SpriteNode("gpuwu", std::make_shared<Sprite>(gpuwu), "spriteShader"));
-    //GameController::currentScene->root.addChild(enemy2);
+    root->addChild(new SpriteNode("gpuwu", gpuwu, "spriteShader"));
+
+    SoundEmitter* bgmNode = new SoundEmitter("bgm", true);
+    root->addChild(bgmNode);
+    SoundEmitter3D* dolphinSongNode = new SoundEmitter3D({ 0, 0, 0 }, "muyBuenDia", false);
+    dolphinSongNode->setLooping(false);
+    dolphinSongNode->name = "songNode";
+    enemy->addChild(dolphinSongNode);
+
+    // save scene
+    scene.save("scene.json");
+
+    return scene;
+}
 
 
-    while (!glfwWindowShouldClose(window)) {
-        // ----------- time -----------
-        t1 = glfwGetTime();
-        dt = t1 - t0;
-        t0 = t1;
+int main() {
+    uwu::initialize();
+    //loadResources();
+    setInputBindings();
 
-        // ----------- show fps ------------
-        bool show_fps = false;
-        if (show_fps) {
-            std::stringstream ss;
-            ss << "uwu enyin [" << (int) (1.0f / dt) << "fps" << (int) (1000 * dt) << " ms]";
-            glfwSetWindowTitle(window, ss.str().c_str());
-        }
+    // ----------- Build SceneTree -------------------------
 
-        // ----------- handle input ---------
-        glfwPollEvents();
-        InputController::pollJoysticks();
-        InputController::pollKeys(window);
+    //Scene scene = buildScene();
+    Scene scene = Scene::load("scene.json");
 
-        // ----------------- update -------------------------
+    uwu::setMainScene(scene);
 
-        GameController::update(dt);
-        scene.update(dt);
+    uwu::run();
 
-        // ----------------- draw ---------------------------
+    uwu::kill();
 
-        glEnable(GL_DEPTH_TEST);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        if (GameController::fillPolygon)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        else
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        
-        // 3D
-
-        glm::mat4 player_view = player->camera->getView();
-        glm::mat4 player_projection = player->camera->getProjection();
-
-        Renderer::projection = player_projection;
-        Renderer::view = player_view;
-        
-        scene.render();
-
-        Renderer::render();
-
-        // GUI
-        //glClear(GL_DEPTH_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
-        Renderer2D::render();
-        //textRenderer.renderText(std::make_shared<Shader>(ResourceManager::getShader("textShader")), "Esto es un texto.", 70.0f, 164.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-
-        glfwSwapBuffers(window);
-    }
-
-    ResourceManager::clear();
-    Renderer2D::clear();
-
-    glfwTerminate();
     return 0;
 }

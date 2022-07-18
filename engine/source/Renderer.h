@@ -23,6 +23,7 @@ class Renderer {
 		static void render();
 		//static void setCamera(Camera& new_cam);
 		static void enqueue(VisualNode *node, glm::mat4 _transform);
+		static void updateView();
 	private:
 		Renderer() { }
 };

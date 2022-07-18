@@ -18,12 +18,16 @@
 #include <filesystem>
 #include "Mesh.h"
 #include "Shader.h"
+#include "nlohmann/json.hpp"
+
+using json = nlohmann::json;
 
 
 unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
 class Model {
 	public:
+		std::string modelPath = "";
 		std::vector<Texture> textures_loaded;
 		std::vector<Mesh> meshes;
 		std::string directory;
@@ -41,6 +45,9 @@ class Model {
 		Mesh processMesh(aiMesh *mesh, const aiScene *scene);
 		std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
 };
+
+void to_json(json& j, const Model& model);
+void from_json(const json& j, Model& model);
 
 using ModelPtr = std::shared_ptr<Model>;
 

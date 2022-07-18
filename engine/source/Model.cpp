@@ -2,6 +2,7 @@
 #include "ResourceManager.h"
 
 
+
 void Model::Draw(ShaderPtr shader) {
 	for (unsigned int i = 0; i < meshes.size(); i++) {
 		meshes[i].Draw(shader);
@@ -16,8 +17,8 @@ void Model::loadModel(std::string path) {
 		std::cout << "ERROR - ASSIMP" << import.GetErrorString() << std::endl;
 		return;
 	}
-	directory = path.substr(0, path.find_last_of('/'));
-
+	directory = "assets/models";
+	//directory = path.substr(0, path.find_last_of('/'));
 	processNode(scene->mRootNode, scene);
 }
 
@@ -97,7 +98,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
 		}
 		if (!skip) {
 			Texture texture;
-			std::cout << str.C_Str() << std::endl;
+			//std::cout << str.C_Str() << std::endl;
 			texture.id = TextureFromFile(str.C_Str(), directory);
 			texture.type = typeName;
 			texture.path = str.C_Str();
@@ -113,4 +114,14 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
 	filename = directory + '/' + filename;
 
 	return ResourceManager::loadTexture(filename.c_str(), false, std::string(path), true).ID;
+}
+
+void to_json(json& j, const Model& model) {
+	j = {
+		{ "path", model.modelPath }
+	};
+}
+
+void from_json(const json& j, Model& model) {
+	model.modelPath = j["modelPath"];
 }

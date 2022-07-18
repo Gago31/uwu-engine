@@ -33,4 +33,13 @@ class Mesh {
 		void setupMesh();
 };
 
+//void from_json(const json& j, Vertex& v);
+//void to_json(json& j, const Vertex& v);
+//
+//void from_json(const json& j, Texture& t);
+//void to_json(json& j, const Texture& t);
+//
+//void from_json(const json& j, Mesh& m);
+//void to_json(json& j, const Mesh& m);
+
 #endif // !MESH_H

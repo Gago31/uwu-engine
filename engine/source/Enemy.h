@@ -25,21 +25,33 @@ enum direction_t {
 
 class Enemy : public Node3D {
 	private:
-        std::vector<direction_t> path;
-        glm::vec3 position;
-        int nextPos = 0;
         bool action_ready = true;
-        direction_t direction = RIGHT;
         float x = 0.0f;
         float y = 0.0f;
 	public:
+        int direction = RIGHT;
+        int nextPos = 0;
+        inline static std::string className = "Enemy";
+        glm::vec3 position;
+        std::vector<int> path;
         ShaderPtr shader;
         Enemy() = default;
-        Enemy(glm::vec3 pos, std::vector<direction_t>& _path);
+        Enemy(glm::vec3 pos, std::vector<int>& _path);
         void update(float dt) override;
         const glm::vec3 getPos();
+        void setPos(glm::vec3 new_pos);
+        void setPos(float _x, float _y, float _z = 0.0f);
         const float getX();
         const float getY();
+        virtual json serialize() override;
+        void deserialize(json& j) override;
+        void turnStart() override;
+        std::string getClassName() override {
+            return className;
+        }
 };
+
+//void from_json(const json& j, Enemy& node);
+//void to_json(json& j, const Enemy& node);
 
 #endif // !ENEMY_H
