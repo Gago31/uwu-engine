@@ -23,7 +23,7 @@ class GameController {
         inline static Scene *currentScene;
         inline static Camera *currentCamera;
         static void turnStart(bool update_env) {
-            currentScene->root._turnStart();
+            currentScene->root->_turnStart();
             update_world = update_env;
             run_turn = true;
         }
@@ -44,7 +44,7 @@ class GameController {
                     update_world = false;
                     run_turn = false;
                     TURN_TIME = 0.0f;
-                    currentScene->root._turnEnd();
+                    currentScene->root->_turnEnd();
                 }
             }
         }

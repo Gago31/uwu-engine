@@ -9,17 +9,23 @@
 
 class MeshNode : public VisualNode {
 	public:
+		inline static std::string className = "MeshNode";
+		std::string modelName;
 		ModelPtr model;
 		MeshNode() = default;
-		MeshNode(ModelPtr m, std::string shader_name) : model(m) {
+		MeshNode(std::string model_name, std::string shader_name) {
 			name = "Mesh";
 			shaderName = shader_name;
+			modelName = model_name;
 			shader = std::make_shared<Shader>(ResourceManager::getShader(shader_name));
+			model = std::make_shared<Model>(ResourceManager::getModel(model_name));
 		}
-		MeshNode(std::string node_name, ModelPtr m, std::string shader_name) : model(m) {
+		MeshNode(std::string node_name, std::string model_name, std::string shader_name) {
 			name = node_name;
 			shaderName = shader_name;
 			shader = std::make_shared<Shader>(ResourceManager::getShader(shader_name));
+			modelName = model_name;
+			model = std::make_shared<Model>(ResourceManager::getModel(model_name));
 		}
 		void render(glm::mat4 _transform) override {
 			//std::cout << "uwu" << std::endl;
@@ -33,5 +39,20 @@ class MeshNode : public VisualNode {
 			for (Node* child : children) {
 				child->_render(_transform * transform.getTransform());
 			}
+		}
+		virtual json serialize() override {
+			json j = VisualNode::serialize();
+			j["modelName"] = modelName;
+			return j;
+		}
+		void deserialize(json& j) override {
+			Node3D::deserialize(j);
+			shaderName = j["shaderName"];
+			shader = std::make_shared<Shader>(ResourceManager::getShader(shaderName));
+			modelName = j["modelName"];
+			model = std::make_shared<Model>(ResourceManager::getModel(modelName));
+		}
+		std::string getClassName() override {
+			return className;
 		}
 };

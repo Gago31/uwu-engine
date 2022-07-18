@@ -57,3 +57,32 @@ void Grid::print() {
 		std::cout << std::endl;
 	}
 }
+
+void Grid::resize(int new_width, int new_height) {
+	w = new_width;
+	h = new_height;
+	grid.resize(w * h, 0);
+}
+
+void from_json(const json& j, Grid& g) {
+	int _w = j["w"];
+	int _h = j["h"];
+	g.resize(_w, _h);
+	for (int i = 0; i < _w; i++) {
+		for (int k = 0; k < _h; k++) {
+			g.set_coord(i, k, j["grid"][i + k * _w]);
+		}
+	}
+}
+
+void to_json(json& j, const Grid& g) {
+	j["w"] = g.width();
+	j["h"] = g.height();
+	std::vector<int> v(g.width() * g.height());
+	for (int i = 0; i < g.width(); i++) {
+		for (int k = 0; k < g.height(); k++) {
+			v[i + k * g.width()] = g.coord(i, k);
+		}
+	}
+	j["grid"] = v;
+}

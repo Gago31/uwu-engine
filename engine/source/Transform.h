@@ -4,6 +4,10 @@
 #include <memory>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "nlohmann/json.hpp"
+
+
+using json = nlohmann::json;
 
 
 class Transform {
@@ -28,6 +32,9 @@ class Transform {
 		void resetScale();
 };
 
+void from_json(const json& j, Transform& transform);
+void to_json(json& j, const Transform& transform);
+
 class Transform2D {
 	public:
 		glm::vec2 position;
@@ -47,6 +54,9 @@ class Transform2D {
 		void resetRotation();
 		void resetScale();
 };
+
+void from_json(const json& j, Transform2D& transform);
+void to_json(json& j, const Transform2D& transform);
 
 using TransformPtr = std::shared_ptr<Transform>;
 using Transform2DPtr = std::shared_ptr<Transform2D>;

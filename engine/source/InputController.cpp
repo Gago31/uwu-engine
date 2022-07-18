@@ -124,8 +124,17 @@ void InputController::setAxisBinding(std::string action_negative, std::string ac
 	axis_mappings[joy_axis] = { action_negative, action_positive };
 }
 
-void InputController::setAxisBindings(std::map<std::string, std::pair<int, int>> action_bindings) {
+void InputController::setAxisBindings(std::map<std::string, axis_type> action_bindings) {
 	axis_bindings = action_bindings;
+	for (auto& [key, value] : action_bindings) {
+		if (value.second < 0) {
+			axis_mappings[value.first].first = key;
+			joystick_bindings[key] = value.first;
+		} else {
+			axis_mappings[value.first].second = key;
+			joystick_bindings[key] = value.second;
+		}
+	}
 	std::cout << "axis actions set" << std::endl;
 }
 
@@ -221,7 +230,8 @@ void InputController::pollJoysticks() {
 				int event = joystick_bindings[game_action];
 				//consumed = true;
 				if (axis_bindings.count(game_action)) {
-					float action_strength = std::abs(state.axes[event]) < joystick_deadzone ? state.axes[event] : 0.0f;
+					//if (abs(state.axes[event]) > 0.0f) std::cout << game_action << ": " << state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] << std::endl;
+					float action_strength = std::abs(state.axes[event]) > joystick_deadzone ? state.axes[event] : 0.0f;
 					consumed = action_strength > 0.0f;
 					//float action_strength = state.axes[event <= GLFW_GAMEPAD_AXIS_LAST ? event : GLFW_GAMEPAD_AXIS_LAST];
 					listener->setActionState(axis_mappings[event].first, action_strength < 0.0f);

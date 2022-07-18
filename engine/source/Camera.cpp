@@ -9,7 +9,7 @@ Camera::Camera(glm::vec3 pos, float theta_, float aspect_ratio) {
     nextTheta = theta_;
     ratio = aspect_ratio;
     near = 0.1f;
-    far = 20.0f;
+    far = 10.0f;
 }
 
 void Camera::setPos(glm::vec3 new_pos) {
@@ -40,6 +40,7 @@ void Camera::update() {
 }
 
 void Camera::makeCurrent() {
+    setAspectRatio(GameController::SCREEN_RATIO);
     GameController::currentCamera = this;
 }
 

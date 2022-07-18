@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "GameController.h"
 #include "Renderer.h"
+#include "MeshNode.h"
 #include <nlohmann/json.hpp>
 #include <map>
 #include "ResourceManager.h"
@@ -17,10 +18,12 @@ class GridNode : public Node3D {
 			{ 1, "greenCube" }
 		};*/
 	public:
+		inline static std::string className = "GridNode";
 		Grid grid;
+		//bool updateGridChildren = false;
 		/*Grid collisionGrid;
 		Grid attributeGrid;*/
-		std::vector<std::vector<Node*>> children;
+		std::vector<std::vector<Node*>> gridChildren;
 		std::set<std::pair<int, int>> visible_children;
 		GridNode() {
 			name = "Grid";
@@ -28,21 +31,23 @@ class GridNode : public Node3D {
 		GridNode(Grid& layout_grid) {
 			name = "Grid";
 			grid = layout_grid;
-			children.resize(grid.height());
+			gridChildren.resize(grid.height());
 			for (int j = 0; j < grid.height(); j++) {
 				for (int i = 0; i < grid.width(); i++) {
-					children[j].push_back(new Node());
+					gridChildren[j].push_back(new Node());
 					visible_children.insert({ i, j });
 				}
 			}
+			build();
+			setCollision();
 		}
 		GridNode(std::string node_name, Grid& layout_grid) {
 			name = node_name;
 			grid = layout_grid;
-			children.resize(grid.height());
+			gridChildren.resize(grid.height());
 			for (int j = 0; j < grid.height(); j++) {
 				for (int i = 0; i < grid.width(); i++) {
-					children[j].push_back(new Node());
+					gridChildren[j].push_back(new Node());
 					visible_children.insert({ i, j });
 				}
 			}
@@ -52,10 +57,10 @@ class GridNode : public Node3D {
 			grid = layout_grid;
 			collisionGrid = collision_grid;
 			attributeGrid = collisionGrid;
-			children.resize(grid.height());
+			gridChildren.resize(grid.height());
 			for (int j = 0; j < grid.height(); j++) {
 				for (int i = 0; i < grid.width(); i++) {
-					children[j].push_back(new Node());
+					gridChildren[j].push_back(new Node());
 					visible_children.insert({ i, j});
 				}
 			}
@@ -64,24 +69,32 @@ class GridNode : public Node3D {
 		GridNode(std::string node_name, Grid& _grid) {
 			name = node_name;
 			grid = _grid;
-			children.resize(grid.height());
+			gridChildren.resize(grid.height());
 			for (int j = 0; j < grid.height(); j++) {
 				for (int i = 0; i < grid.width(); i++) {
-					children[j].push_back(new Node());
+					gridChildren[j].push_back(new Node());
 					visible_children.insert({ i, j });
 				}
 			}
 		}*/
 		void build() {
+			gridChildren.clear();
+			gridChildren.resize(grid.height());
+			for (int j = 0; j < grid.height(); j++) {
+				for (int i = 0; i < grid.width(); i++) {
+					gridChildren[j].push_back(new Node());
+					visible_children.insert({ i, j });
+				}
+			}
 			for (int j = 0; j < grid.height(); j++) {
 				for (int i = 0; i < grid.width(); i++) {
 					if (grid.coord(i, j) == 1) {
-						MeshNode* wall = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenCube")), "modelShader");
+						MeshNode* wall = new MeshNode("greenCube", "modelShaderL");
 						wall->transform.translate({ i, -j + grid.height() - 1, 0.5f });
 						wall->transform.scale(0.5f);
 						addChild(wall, i, -j + grid.height() - 1);
 					} else {
-						MeshNode* floor = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("greenPlane")), "modelShader");
+						MeshNode* floor = new MeshNode("greenPlane", "modelShaderL");
 						floor->transform.translate({ i, -j + grid.height() - 1, 0.0f });
 						floor->transform.scale(0.5f);
 						floor->transform.rotateX(glm::radians<float>(90));
@@ -94,7 +107,7 @@ class GridNode : public Node3D {
 			GameController::currentGrid = std::make_shared<Grid>(grid);
 		}
 		virtual Node* findChild(std::string child_name) {
-			for (std::vector<Node*>& row : children) {
+			for (std::vector<Node*>& row : gridChildren) {
 				for (Node* child : row) {
 					if (child->name == child_name) return child;
 				}
@@ -102,21 +115,21 @@ class GridNode : public Node3D {
 			return nullptr;
 		}
 		virtual Node* getChild(int x, int y) {
-			if (children.size() >= y || children[y].size() >= x) return nullptr;
-			return children[y][x];
+			if (gridChildren.size() >= y || gridChildren[y].size() >= x) return nullptr;
+			return gridChildren[y][x];
 		}
 		//void addChild(Node *child) override { return; }
 		void addChild(Node *child, int x, int y) {
-			children[y][x]->addChild(child);
+			gridChildren[y][x]->addChild(child);
 		};
 		void _render(glm::mat4 _transform) override {
 			for (auto& [x, y] : visible_children) {
-				children[y][x]->_render(_transform);
+				gridChildren[y][x]->_render(_transform);
 			}
 		}
 		virtual void _turnStart() {
 			turnStart();
-			for (std::vector<Node*> row : children) {
+			for (std::vector<Node*> row : gridChildren) {
 				for (Node* child : row) {
 					child->_turnStart();
 				}
@@ -141,11 +154,11 @@ class GridNode : public Node3D {
 
 			if (dir_x != 0) {
 				if (next_x - pos_x != dir_x) {
-					if (children[next_y][next_x]) visible_children.insert({ next_x, next_y });
+					if (gridChildren[next_y][next_x]) visible_children.insert({ next_x, next_y });
 				}
 			} else {
 				if (next_y - pos_y != dir_y) {
-					if (children[next_y][next_x]) visible_children.insert({ next_x, next_y });
+					if (gridChildren[next_y][next_x]) visible_children.insert({ next_x, next_y });
 				}
 			}
 
@@ -154,7 +167,7 @@ class GridNode : public Node3D {
 					for (int j = -(i + 1); j < i + 2; j++) {
 						if (pos_x - i < 0) break;
 						if (0 <= pos_y + j && pos_y + j < grid.height()) {
-							if (children[pos_y + j][pos_x - i]) visible_children.insert({ pos_x - i, pos_y + j });
+							if (gridChildren[pos_y + j][pos_x - i]) visible_children.insert({ pos_x - i, pos_y + j });
 						}
 					}
 				}
@@ -163,7 +176,7 @@ class GridNode : public Node3D {
 					for (int j = -(i + 1); j < i + 2; j++) {
 						if (pos_x + i >= grid.width()) break;
 						if (0 <= pos_y + j && pos_y + j < grid.height()) {
-							if (children[pos_y + j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y + j });
+							if (gridChildren[pos_y + j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y + j });
 						}
 					}
 				}
@@ -173,7 +186,7 @@ class GridNode : public Node3D {
 					for (int i = -(j + 1); i < j + 2; i++) {
 						if (pos_y + j >= grid.height()) break;
 						if (0 <= pos_x + i && pos_x + i < grid.width()) {
-							if (children[pos_y + j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y + j });
+							if (gridChildren[pos_y + j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y + j });
 						}
 					}
 				}
@@ -182,7 +195,7 @@ class GridNode : public Node3D {
 					for (int i = -(j + 1); i < j + 2; i++) {
 						if (pos_y - j < 0) break;
 						if (0 <= pos_x + i && pos_x + i < grid.width()) {
-							if (children[pos_y - j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y - j });
+							if (gridChildren[pos_y - j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y - j });
 						}
 					}
 				}
@@ -190,7 +203,7 @@ class GridNode : public Node3D {
 		}
 		virtual void _turnEnd() {
 			turnEnd();
-			for (std::vector<Node*> row : children) {
+			for (std::vector<Node*> row : gridChildren) {
 				for (Node* child : row) {
 					child->_turnEnd();
 				}
@@ -210,37 +223,86 @@ class GridNode : public Node3D {
 					for (int j = -(i + 1); j < i + 2; j++) {
 						if (pos_x - i < 0) continue;
 						if (0 <= pos_y + j && pos_y + j < grid.height()) {
-							if (children[pos_y + j][pos_x - i]) visible_children.insert({ pos_x - i, pos_y + j });
-						}
-					}
-				}
-			} else if (dir.x > 0) {
-				for (int i = 0; i < far; i++) {
-					for (int j = -(i + 1); j < i + 2; j++) {
-						if (pos_x + i >= grid.width()) continue;
-						if (0 <= pos_y + j && pos_y + j < grid.height()) {
-							if (children[pos_y + j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y + j });
-						}
-					}
-				}
-			} else if (dir.y > 0) {
-				for (int j = 0; j < far; j++) {
-					for (int i = -(j + 1); i < j + 2; i++) {
-						if (pos_y + j >= grid.height()) break;
-						if (0 <= pos_x + i && pos_x + i < grid.width()) {
-							if (children[pos_y + j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y + j });
-						}
-					}
-				}
-			} else if (dir.y < 0) {
-				for (int j = 0; j < far; j++) {
-					for (int i = -(j + 1); i < j + 2; i++) {
-						if (pos_y - j < 0) continue;
-						if (0 <= pos_x + i && pos_x + i < grid.width()) {
-							if (children[pos_y - j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y - j });
+							if (gridChildren[pos_y + j][pos_x - i]) visible_children.insert({ pos_x - i, pos_y + j });
 						}
 					}
 				}
 			}
+			if (dir.x > 0) {
+				for (int i = 0; i < far; i++) {
+					for (int j = -(i + 1); j < i + 2; j++) {
+						if (pos_x + i >= grid.width()) continue;
+						if (0 <= pos_y + j && pos_y + j < grid.height()) {
+							if (gridChildren[pos_y + j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y + j });
+						}
+					}
+				}
+			}
+			if (dir.y > 0) {
+				for (int j = 0; j < far; j++) {
+					for (int i = -(j + 1); i < j + 2; i++) {
+						if (pos_y + j >= grid.height()) break;
+						if (0 <= pos_x + i && pos_x + i < grid.width()) {
+							if (gridChildren[pos_y + j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y + j });
+						}
+					}
+				}
+			}
+			if (dir.y < 0) {
+				for (int j = 0; j < far; j++) {
+					for (int i = -(j + 1); i < j + 2; i++) {
+						if (pos_y - j < 0) continue;
+						if (0 <= pos_x + i && pos_x + i < grid.width()) {
+							if (gridChildren[pos_y - j][pos_x + i]) visible_children.insert({ pos_x + i, pos_y - j });
+						}
+					}
+				}
+			}
+		}
+		virtual json serialize() override {
+			json j = Node3D::serialize();
+			j["grid"] = grid;
+			//json grid_children = json::array();
+			/*for (std::vector<Node*>& row : gridChildren) {
+				json children_row;
+				for (Node* child : row) {
+					children_row.push_back(child->id);
+				}
+				grid_children.push_back(children_row);
+			}
+			j["gridChildren"] = grid_children;*/
+			return j;
+		}
+		void deserialize(json& j) override {
+			Node3D::deserialize(j);
+			grid = j["grid"];
+			build();
+			setCollision();
+		}
+		int assignIds(int start) override {
+			id = start++;
+			/*for (std::vector<Node*>& row : gridChildren) {
+				for (Node* child : row) {
+					start = child->assignIds(start);
+				}
+			}*/
+			for (Node* child : children) {
+				start = child->assignIds(start);
+			}
+			return start;
+		}
+		void registerNode(json& j) override {
+			j.push_back(serialize());
+			/*for (std::vector<Node*>& row : gridChildren) {
+				for (Node* child : row) {
+					child->registerNode(j);
+				}
+			}*/
+			for (Node* child : children) {
+				child->registerNode(j);
+			}
+		}
+		std::string getClassName() override {
+			return className;
 		}
 };

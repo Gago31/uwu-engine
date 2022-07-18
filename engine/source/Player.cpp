@@ -6,6 +6,8 @@
 #include "ResourceManager.h"
 #include <iostream>
 #include "root_directory.h"
+#include "SoundController.h"
+#include "SoundEmitter3D.h"
 
 
 Player::Player(glm::vec3 pos, float theta_d) {
@@ -30,13 +32,15 @@ void Player::update(float dt) {
     if (Input->actionPressed("b")) {
         glm::vec2 cam_dir = camera->getDirection();
         std::cout << "Direction: (" << cam_dir.x << ", " << cam_dir.y << "); position: (" << position.x << ", " << position.y << ")" << std::endl;
-        Node *textbox = GameController::currentScene->root.findChild("TextBox");
+        Node *textbox = GameController::currentScene->root->findChild("TextBox");
         textbox->visible = !textbox->visible;
         std::cout << textbox->visible << std::endl;
     }
     if (accept_input) {
         h_axis = Input->actionStrength("right") - Input->actionStrength("left");
         v_axis = Input->actionStrength("up") - Input->actionStrength("down");
+        h_axis = h_axis < 0.0f ? -1.0f : (h_axis > 0.0f ? 1.0f : 0.0f);
+        v_axis = v_axis < 0.0f ? -1.0f : (v_axis > 0.0f ? 1.0f : 0.0f);
         h_axis = v_axis == 0.0f ? h_axis : 0.0f;
         glm::vec2 nextPos = {
             position.x + v_axis * glm::round(glm::sin(camera->theta)),
@@ -58,26 +62,32 @@ void Player::update(float dt) {
             //std::cout << "turn start" << std::endl;
         }
         if (Input->actionPressed("a")) {
+            //GameController::currentScene->unload();
+            //GameController::currentScene->removeRoot();
             if (a) {
-                if (GameController::currentScene->root.findChild("DCP2") == nullptr) {
-                    std::vector<direction_t> enemyPath = { (direction_t)(WAIT | UP), (direction_t)(WAIT | RIGHT), (direction_t)(WAIT | DOWN), (direction_t)(WAIT | LEFT) };
+                if (GameController::currentScene->root->findChild("DCP2") == nullptr) {
+                    std::vector<int> enemyPath = { WAIT | UP, WAIT | RIGHT, WAIT | DOWN, WAIT | LEFT };
                     Enemy* enemy = new Enemy({ 5, 4, 0 }, enemyPath);
                     enemy->name = "DCP2";
-                    MeshNode* dcpNode = new MeshNode(std::make_shared<Model>(ResourceManager::getModel("DCP")), "modelShader");
+                    MeshNode* dcpNode = new MeshNode("DCP", "modelShader");
                     dcpNode->transform.scale(0.2f);
                     dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
                     enemy->addChild(dcpNode);
-                    GameController::currentScene->root.addChild(enemy);
+                    SoundEmitter3D* dolphinSongNode = new SoundEmitter3D({ 0, 0, 0 }, "buenosDias", false);
+                    dolphinSongNode->setLooping(false);
+                    dolphinSongNode->name = "songNode";
+                    enemy->addChild(dolphinSongNode);
+                    GameController::currentScene->root->addChild(enemy);
                     std::cout << "DCP added" << std::endl;
                 } else {
-                    GameController::currentScene->root.findChild("DCP2")->visible = true;
+                    GameController::currentScene->root->findChild("DCP2")->visible = true;
 
                 }
                 a = false;
             } else {
-                //GameController::currentScene->root.findChild("DCP2")->remove();
-                GameController::currentScene->root.findChild("DCP2")->visible = false;
-                std::cout << "DCP fucking killed" << std::endl;
+                GameController::currentScene->root->findChild("DCP2")->remove();
+                //GameController::currentScene->root.findChild("DCP2")->visible = false;
+                std::cout << "DCP killed" << std::endl;
                 a = true;
             }
         }
@@ -105,6 +115,7 @@ void Player::update(float dt) {
         //}
         camera->setPos(camPos);
     }
+    SoundController::updateListener(position, theta);
     camera->update();
 }
 

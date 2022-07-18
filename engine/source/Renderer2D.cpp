@@ -44,6 +44,8 @@ void Renderer2D::enqueue(VisualNode2D* node, glm::mat4 _transform) {
 }
 
 void Renderer2D::render() {
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
 	for (std::string shader_name : shaderNames) {
 		ResourceManager::getShader(shader_name).use();
 		ResourceManager::getShader(shader_name).setMatrix4f("projection", projection);
