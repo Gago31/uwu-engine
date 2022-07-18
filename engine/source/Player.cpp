@@ -87,7 +87,7 @@ void Player::update(float dt) {
             } else {
                 GameController::currentScene->root->findChild("DCP2")->remove();
                 //GameController::currentScene->root.findChild("DCP2")->visible = false;
-                std::cout << "DCP fucking killed" << std::endl;
+                std::cout << "DCP killed" << std::endl;
                 a = true;
             }
         }

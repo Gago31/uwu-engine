@@ -227,7 +227,8 @@ class GridNode : public Node3D {
 						}
 					}
 				}
-			} else if (dir.x > 0) {
+			}
+			if (dir.x > 0) {
 				for (int i = 0; i < far; i++) {
 					for (int j = -(i + 1); j < i + 2; j++) {
 						if (pos_x + i >= grid.width()) continue;
@@ -236,7 +237,8 @@ class GridNode : public Node3D {
 						}
 					}
 				}
-			} else if (dir.y > 0) {
+			}
+			if (dir.y > 0) {
 				for (int j = 0; j < far; j++) {
 					for (int i = -(j + 1); i < j + 2; i++) {
 						if (pos_y + j >= grid.height()) break;
@@ -245,7 +247,8 @@ class GridNode : public Node3D {
 						}
 					}
 				}
-			} else if (dir.y < 0) {
+			}
+			if (dir.y < 0) {
 				for (int j = 0; j < far; j++) {
 					for (int i = -(j + 1); i < j + 2; i++) {
 						if (pos_y - j < 0) continue;

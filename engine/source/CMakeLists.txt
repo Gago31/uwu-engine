@@ -28,10 +28,8 @@ set_property(TARGET uwu_lib PROPERTY CXX_STANDARD 20)
 set(INCLUDE_DIRS 
     "${REPO_DIR}/libs/grafica_cpp/third_party/glad/include/"
     "${REPO_DIR}/libs/grafica_cpp/third_party/glfw-3.3.2/include/"
-    "${REPO_DIR}/libs/grafica_cpp/third_party/eigen-3.3.9/"
     "${REPO_DIR}/libs/grafica_cpp/third_party/glm-0.9.9.8/"
     "${REPO_DIR}/libs/grafica_cpp/third_party/stb/"
-    "${REPO_DIR}/libs/grafica_cpp/third_party/entt-v3.8.1/src/"
     "${REPO_DIR}/libs/grafica_cpp/third_party/assimp-5.0.1/include"
     "${REPO_DIR}/libs/grafica_cpp/third_party/openal-soft/include"
     "${REPO_DIR}/libs/grafica_cpp/third_party/dr_wav"

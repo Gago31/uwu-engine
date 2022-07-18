@@ -1,7 +1,5 @@
 #include <iostream>
 #include <string>
-#include <memory>
-#include <vector>
 #include "Grid.h"
 #include "Enemy.h"
 #include "Sprite.h"
@@ -35,9 +33,9 @@ void loadResources() {
     uwuLoadModel("assets/models/greenPlane.obj", "greenPlane");
 
     // Sounds
-    uwuLoadSoundWAV("/assets/music/moths_bgm_mono.wav", "bgm");
-    uwuLoadSoundWAV("/assets/sounds/buenos_dias.wav", "buenosDias");
-    uwuLoadSoundWAV("/assets/sounds/te_deseo_buen_dia.wav", "muyBuenDia");
+    uwuLoadSoundWAV("assets/music/moths_bgm_mono.wav", "bgm");
+    uwuLoadSoundWAV("assets/sounds/buenos_dias.wav", "buenosDias");
+    uwuLoadSoundWAV("assets/sounds/te_deseo_buen_dia.wav", "muyBuenDia");
 }
 
 void setInputBindings() {
@@ -66,6 +64,16 @@ void setInputBindings() {
 }
 
 Scene buildScene() {
+    // Create scene
+    Scene scene;
+    Node* root = scene.root;
+
+    // Player
+    Player* player = new Player(0.0f, 3.0f, 0.25f, 90);
+    player->camera->makeCurrent();
+    root->addChild(player);
+
+    // Map layout
     int w = 10;
     int h = 10;
 
@@ -83,13 +91,10 @@ Scene buildScene() {
     });
 
     g.print();
+    GridNode* gridNode = new GridNode(g);
+    root->addChild(gridNode);
 
-    Sprite gpuwu("uwu");
-    gpuwu.transform.translate(16.0f, 620.0f);
-
-    Sprite textBox("textBox");
-    textBox.transform.translate(40.0f, 500.0f);
-
+    // Map enemy
     //std::vector<int> enemyPath = { LEFT, UP, UP, RIGHT, RIGHT, DOWN, DOWN, LEFT };
     std::vector<int> enemyPath = { LEFT, WAIT | UP, UP, UP, WAIT | RIGHT, RIGHT, RIGHT, WAIT | DOWN, DOWN, DOWN, WAIT | LEFT, LEFT };
     //std::vector<int> enemyPath = { WAIT | UP, DOUBLE | UP, WAIT | RIGHT, DOUBLE | RIGHT, WAIT | DOWN, DOUBLE | DOWN, WAIT | LEFT, DOUBLE | LEFT };
@@ -98,39 +103,30 @@ Scene buildScene() {
     dcpNode->transform.scale(0.2f);
     dcpNode->transform.rotateX(glm::pi<float>() * 0.5);
     enemy->addChild(dcpNode);
-
-    /*std::vector<direction_t> enemyPath2 = { WAIT | UP, WAIT | RIGHT, WAIT | DOWN, WAIT | LEFT };
-    Enemy* enemy2 = new Enemy({ 5, 5, 0 }, enemyPath2);
-    MeshNode* dcpNode2 = new MeshNode("DCP", "modelShader");
-    dcpNode2->transform.scale(0.2f);
-    dcpNode2->transform.rotateX(glm::pi<float>() * 0.5);
-    enemy2->addChild(dcpNode2);*/
-
-    Player* player = new Player(0.0f, 3.0f, 0.25f, 90);
-    player->camera->setAspectRatio(GameController::SCREEN_RATIO);
-    player->camera->makeCurrent();
-
-    Scene scene;
-
-    Node* root = scene.root;
-    GridNode* gridNode = new GridNode(g);
-    root->addChild(player);
-    root->addChild(gridNode);
+    SoundEmitter3D* dolphinSongNode = new SoundEmitter3D({ 0, 0, 0 }, "muyBuenDia", false);
+    dolphinSongNode->setLooping(false);
+    dolphinSongNode->name = "songNode";
+    enemy->addChild(dolphinSongNode);
     root->addChild(enemy);
+
+    // Sprite
+    Sprite gpuwu("uwu");
+    gpuwu.transform.translate(16.0f, 620.0f);
+    root->addChild(new SpriteNode("gpuwu", gpuwu, "spriteShader"));
+
+    // Text box
+    Sprite textBox("textBox");
+    textBox.transform.translate(40.0f, 500.0f);
     TextBox* textBoxNode = new TextBox(textBox, "assets/fonts/DelaGothicOne-Regular.ttf");
     textBoxNode->text = "Esto no es un texto en espagnol.";
     //textBoxNode->text = "Esto es un texto en español.";
     textBoxNode->transform.translate(70.0f, 164.0f);
     textBoxNode->hide();
     root->addChild(textBoxNode);
-    root->addChild(new SpriteNode("gpuwu", gpuwu, "spriteShader"));
 
+    // Background music
     SoundEmitter* bgmNode = new SoundEmitter("bgm", true);
     root->addChild(bgmNode);
-    SoundEmitter3D* dolphinSongNode = new SoundEmitter3D({ 0, 0, 0 }, "muyBuenDia", false);
-    dolphinSongNode->setLooping(false);
-    dolphinSongNode->name = "songNode";
-    enemy->addChild(dolphinSongNode);
 
     // save scene
     scene.save("scene.json");
@@ -138,16 +134,16 @@ Scene buildScene() {
     return scene;
 }
 
-
 int main() {
     uwu::initialize();
-    //loadResources();
     setInputBindings();
 
-    // ----------- Build SceneTree -------------------------
+    // --- Build scene tree ---
+    loadResources();
+    Scene scene = buildScene();
 
-    //Scene scene = buildScene();
-    Scene scene = Scene::load("scene.json");
+    // Load scene tree from file
+    //Scene scene = Scene::load("scene.json");
 
     uwu::setMainScene(scene);
 

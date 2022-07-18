@@ -203,6 +203,7 @@ void ResourceManager::deserialize(json& j) {
 }
 
 void ResourceManager::loadSoundWAV(const char* soundPath, std::string name){
+	std::cout << "[ResourceManager] " << "Loading wav file " << name << "from path " << soundPath << std::endl;
 	ALuint buffer = loadWAVFromFile(UWU::getPath(soundPath).string().c_str());
 	sounds[name] = {
 		buffer,
@@ -229,7 +230,7 @@ ALuint ResourceManager::loadWAVFromFile(const char* path){
 	if (!load_wav_file(path, buffer)) return -1;
 	//if (!load_wav_file("/assets/music/moths_bgm.wav", buffer)) return -1;
 
-	std::cout << "wav file loaded correctly" << std::endl;
+	std::cout << "[ResourceManager] " << "Loaded wav file succesfully" << std::endl;
 	return buffer;
 }
 

@@ -40,6 +40,7 @@ void Camera::update() {
 }
 
 void Camera::makeCurrent() {
+    setAspectRatio(GameController::SCREEN_RATIO);
     GameController::currentCamera = this;
 }
 

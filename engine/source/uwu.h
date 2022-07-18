@@ -94,10 +94,10 @@ namespace uwu {
 
     void setMainScene(Scene& scene) {
         GameController::currentScene = &scene;
-
     }
 
     void run() {
+        // trigger start event
         GameController::currentScene->start();
 
         float t0 = glfwGetTime(), t1, dt;
@@ -127,12 +127,10 @@ namespace uwu {
             // ----------------- draw ---------------------------
 
             // 3D
-            //Renderer::updateView();
             GameController::currentScene->render();
             Renderer::render();
 
             // GUI
-
             Renderer2D::render();
 
             glfwSwapBuffers(window);
